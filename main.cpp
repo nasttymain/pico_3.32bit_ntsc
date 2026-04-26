@@ -10,13 +10,7 @@ void proc_cin();
 
 int main() {
     stdio_init_all();
-    /*
-    // core0 で映像出力を駆動する場合は以下を呼ぶ
-    init_framedata();
-    init_dma();
-    */
-   
-    // core1 で映像出力を駆動する場合は以下を呼ぶ。250ms くらい待たされる
+    
     init_video_on_core1();
     
     palcolor(1);    
@@ -27,6 +21,13 @@ int main() {
         clrgraph(1);
         swimming_triangle::frame();
         wait_for_vsync();
+        if(frame % 300 == 0){
+            if((frame / 300) % 2 == 1){
+                setDisplayMode(SCREEN_GRAYSCALE);
+            }else{
+                setDisplayMode(SCREEN_PALETTE);
+            }
+        }
     }
 }
 
@@ -38,8 +39,12 @@ void proc_cin(){
         if(c == PICO_ERROR_TIMEOUT){
             break;
         }
-        palcolor(n);
-        n += 1;
+        if(color_mode == SCREEN_PALETTE){
+            palcolor(n);
+            n += 1;
+        }else{
+            palcolor(0);
+        }
         c_putc((char)c);
         if(c == 13){
             c_putc(10);

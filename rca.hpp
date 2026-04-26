@@ -1,12 +1,20 @@
 #include <cstdint>
-void init_framedata();
-void init_dma();
 void pset(int16_t x, int16_t y);
 void palcolor(uint8_t palno);
 void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 void wait_for_vsync();
 void triangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
 void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
+
+void init_framedata();
+void _remove_colorburst();
+void _restore_colorburst();
+void setDisplayMode(uint16_t mode);
+void init_dma();
+
+#define SCREEN_PALETTE 2
+#define SCREEN_GRAYSCALE 1024
+
 
 /*
 void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
@@ -46,6 +54,9 @@ constexpr const uint16_t LEN_ACTIVE_VIDEO           = 756;
 constexpr const uint16_t LEN_BEFORE_ACTIVE_VIDEO    = LEN_FRONT_PORCH + LEN_SYNC_PULSE + LEN_BACK_PORCH; //156
 constexpr const uint16_t LEN_LINE_LENGTH            = LEN_FRONT_PORCH + LEN_SYNC_PULSE + LEN_BACK_PORCH + LEN_ACTIVE_VIDEO; // 912
 
+// 画面モードに関する変数
+uint16_t color_mode = SCREEN_PALETTE;
+int8_t drawing_x_offset = 4;
 
 volatile uint16_t lineno = 0;
 volatile uint32_t frame = 0;
@@ -61,11 +72,15 @@ uint8_t linebuf_vsync[LINEBUF_LEN] __attribute__((aligned(4)));
 
 
 // X 方向に 189 pixel。縦は 224 ラインを使う
-constexpr const uint16_t DISP_RES_X = LEN_ACTIVE_VIDEO / 4;
-constexpr const uint16_t DISP_RES_X_MONOCHROME = LEN_ACTIVE_VIDEO / 2;
+constexpr const uint16_t DISP_RES_X = (LEN_ACTIVE_VIDEO) / 4;
+constexpr const uint16_t DISP_RES_X_GRAYSCALE = LEN_ACTIVE_VIDEO / 2;
 constexpr const uint16_t DISP_RES_Y = 240;
 
+uint16_t _display_size_x = DISP_RES_X - drawing_x_offset;
+uint16_t _display_size_y = DISP_RES_Y;
+
 uint8_t framebuf[256 * DISP_RES_Y] __attribute__((aligned(4)));
+
 
 
 PIO pio = pio0;
@@ -156,26 +171,53 @@ void hndirq0(void){
         const uint_fast16_t linenum = (lineno - 28);
         const uint_fast32_t lineoffset = linenum << 8;
         // 映像として有効な x 方向のlinebufの添字は、79～454(455は捨てる)の376バイト、188ピクセル。
-        for(uint_fast16_t i = 0; i < 188; i += 1){
-            #ifndef VIDEO_TEST_PTN_COLOR
-            const uint_fast8_t pxdat = framebuf[lineoffset + i];
-            #else
-            // 以下、テストパターンジェネレータ
-            const uint_fast8_t pxdat = (i >> 2) + (linenum >= 120 ? 48 : 0);
-            // 以上、テストパターンジェネレータ
-            #endif
-            const int_fast8_t pxvalue = pxdat & 0b00000011;
-            const int_fast8_t pxcolorphase =  (pxdat & 0b00111100) >> 2;
-            const uint_fast8_t pxcolorvalue = (pxcolorphase >= 12 ? 0 : 1);
-            
-            const uint_fast8_t subpx[4] = {
-                amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 0] * pxcolorvalue + AMPINDEX_0IRE],
-                amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 3] * pxcolorvalue + AMPINDEX_0IRE],
-                amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 6] * pxcolorvalue + AMPINDEX_0IRE],
-                amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 9] * pxcolorvalue + AMPINDEX_0IRE]
-            };
-            (ptr_linebuf[flip])[xindex_base + (i << 1) + 0] = (subpx[0] << 4) + (subpx[1]);
-            (ptr_linebuf[flip])[xindex_base + (i << 1) + 1] = (subpx[2] << 4) + (subpx[3]);
+        
+        if(color_mode == SCREEN_PALETTE){
+            // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_PALETTE
+            for(uint_fast16_t i = 0; i < 188; i += 1){
+                #ifndef VIDEO_TEST_PTN_COLOR
+                const uint_fast8_t pxdat = framebuf[lineoffset + i];
+                #else
+                // 以下、テストパターンジェネレータ
+                const uint_fast8_t pxdat = (i >> 2) + (linenum >= 120 ? 48 : 0);
+                // 以上、テストパターンジェネレータ
+                #endif
+                const int_fast8_t pxvalue = pxdat & 0b00000011;
+                const int_fast8_t pxcolorphase =  (pxdat & 0b00111100) >> 2;
+                const uint_fast8_t pxcolorvalue = (pxcolorphase >= 12 ? 0 : 1);
+                
+                const uint_fast8_t subpx[4] = {
+                    amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 0] * pxcolorvalue + AMPINDEX_0IRE],
+                    amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 3] * pxcolorvalue + AMPINDEX_0IRE],
+                    amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 6] * pxcolorvalue + AMPINDEX_0IRE],
+                    amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 9] * pxcolorvalue + AMPINDEX_0IRE]
+                };
+                (ptr_linebuf[flip])[xindex_base + (i << 1) + 0] = (subpx[0] << 4) + (subpx[1]);
+                (ptr_linebuf[flip])[xindex_base + (i << 1) + 1] = (subpx[2] << 4) + (subpx[3]);
+            }
+            // END LINE_DATA_CONSTRUCT WHEN SCREEN_PALETTE
+        }else{
+            // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_GRAYSCALE
+            for(uint_fast16_t i = 0; i < 188; i += 1){
+                #ifndef VIDEO_TEST_PTN_COLOR
+                const uint_fast8_t pxdat = framebuf[lineoffset + i];
+                #else
+                // 以下、テストパターンジェネレータ
+                const uint_fast8_t pxdat = (i >> 2) + (linenum >= 120 ? 48 : 0);
+                // 以上、テストパターンジェネレータ
+                #endif
+                const int_fast8_t pxvalue[2] = {(int_fast8_t)((pxdat >> 4) & 0b00000011), (int_fast8_t)(pxdat & 0b00000011)};
+                
+                const uint_fast8_t subpx[4] = {
+                    amp2out[(pxvalue[0] << 1) + AMPINDEX_0IRE],
+                    amp2out[(pxvalue[0] << 1) + AMPINDEX_0IRE],
+                    amp2out[(pxvalue[1] << 1) + AMPINDEX_0IRE],
+                    amp2out[(pxvalue[1] << 1) + AMPINDEX_0IRE]
+                };
+                (ptr_linebuf[flip])[xindex_base + (i << 1) + 0] = (subpx[0] << 4) + (subpx[1]);
+                (ptr_linebuf[flip])[xindex_base + (i << 1) + 1] = (subpx[2] << 4) + (subpx[3]);
+            }
+            // END LINE_DATA_CONSTRUCT WHEN SCREEN_GRAYSCALE
         }
     }
     
@@ -204,15 +246,29 @@ void main_program_init(PIO pio, uint sm, uint offset, uint pin) {
     pio_sm_init(pio, sm, offset, &c);
 }
 
-void pset(int16_t x, int16_t y){
-    if(x < 0 || x >= DISP_RES_X){
+void pset(int16_t xpos, int16_t ypos){
+    const int16_t x = xpos + ((color_mode == SCREEN_GRAYSCALE) ? drawing_x_offset * 2: drawing_x_offset);
+    const int16_t y = ypos;
+    if(x < 0 || x >= _display_size_x){
         return;
     }
-    if(y < 0 || y >= DISP_RES_Y){
+    if(y < 0 || y >= _display_size_y){
         return;
     }
-    int32_t c = (((int32_t)y) << 8) + x;
-    framebuf[c] = current_color;
+    if(color_mode == SCREEN_PALETTE){
+        int32_t c = (((int32_t)y) << 8) + x;
+        framebuf[c] = current_color;
+    }
+    if(color_mode == SCREEN_GRAYSCALE){
+        int32_t c = (((int32_t)y) << 8) + (x >> 1);
+        if((x & 1) == 0){
+            // 0: 左
+            framebuf[c] = framebuf[c] & 0b00001111 + (current_color << 4);
+        }else{
+            // 1: 右
+            framebuf[c] = framebuf[c] & 0b11110000 + (current_color);
+        }
+    }
 }
 
 // 有効なのは 0 から 63 まで
@@ -223,54 +279,6 @@ void palcolor(uint8_t palno){
 
 // core0 でも init_framedata と init_dma を呼べば動く。USB割り込みで荒れるけど
 void init_framedata(){    
-    // ラインあたり63.5usが正規。4で割り切れたいので63.6usにしよう。10MHzならラインあたり636pixel。159y2te(1/4)
-    // 2(17) White
-    // 1(16) Sync
-    // BLACK: 01 White: 11 Sync: 00
-    
-    //LEN_FRONT_PORCH            = 21;
-    //LEN_SYNC_PULSE             = 67;
-    //LEN_BACK_PORCH             = 68;
-    //LEN_ACTIVE_VIDEO           = 756;
-    //LEN_BEFORE_ACTIVE_VIDEO    = LEN_FRONT_PORCH + LEN_SYNC_PULSE + LEN_BACK_PORCH; //156
-    //LEN_LINE_LENGTH            = LEN_FRONT_PORCH + LEN_SYNC_PULSE + LEN_BACK_PORCH + LEN_ACTIVE_VIDEO; // 912
-    // モノクロの場合:
-    /*
-    for(uint16_t i = 0; i < LINEBUF_LEN; i += 1){
-        if(i < 10){
-            // front porch
-            linebuf_a[i] = 0b00010001;
-            linebuf_b[i] = 0b00010001;
-            linebuf_vblank[i] = 0b00010001;
-            linebuf_vsync[i] = 0b00010001;
-        }else if(i == 10){
-            // front porch + hsync
-            linebuf_a[i] = 0b00010000;
-            linebuf_b[i] = 0b00010000;
-            linebuf_vblank[i] = 0b00010000;
-            linebuf_vsync[i] = 0b00000000;
-        }else if(i <= 44){
-            // hsync
-            linebuf_a[i] = 0b00000000;
-            linebuf_b[i] = 0b00000000;
-            linebuf_vblank[i] = 0b00000000;
-            linebuf_vsync[i] = 0b00000000;
-        }else if(i <= 78){
-            // back porch
-            linebuf_a[i] = 0b00010001;
-            linebuf_b[i] = 0b00010001;
-            linebuf_vblank[i] = 0b00010001;
-            linebuf_vsync[i] = 0b00000000;
-        }else{
-            // active video
-            linebuf_a[i] = 0b00010001 + ((i & 7) << 1) + ((i & 7) << 5) ;
-            linebuf_b[i] = 0b00010001 + ((i & 7) << 1) + ((i & 7) << 5) ;
-            linebuf_vblank[i] = 0b00010001;
-            linebuf_vsync[i] = 0b00000000;
-        }
-    }
-    */
-    // END モノクロの場合
     // NTSCカラーの場合:
     for(uint16_t i = 0; i < LINEBUF_LEN; i += 1){
         if(i < 10){
@@ -338,6 +346,68 @@ void init_framedata(){
         }
     }
     // END NTSCカラーの場合
+}
+
+void _remove_colorburst(){
+    for(uint16_t i = 49; i < 69; i += 1){
+        linebuf_a[i] = 0b00010001;
+        linebuf_b[i] = 0b00010001;
+        linebuf_vblank[i] = 0b00010001;
+    }
+    
+}
+
+void _restore_colorburst(){
+    // init_framedata から転記している。そっちを修正の場合はこちらの修正も忘れないこと!
+    for(uint16_t i = 49; i < 69; i += 1){
+        if(i == 49){
+            // back porch(before burst) + COLOR BURST(真ん中スタートとする)
+            // つまるところ、カラーバーストの0度位相は、奇数添字の後半要素。
+            linebuf_a[i] = 0b00010001;
+            linebuf_b[i] = 0b00010001;
+            linebuf_vblank[i] = 0b00010001;
+        }else if(i <= 67){
+            // COLOR BURST
+            // カラーバーストは、[0 1 0 -1]のような感じになる
+            if((i & 1) == 0){// i % 2 == 0
+                linebuf_a[i] = 0b00110001;
+                linebuf_b[i] = 0b00110001;
+                linebuf_vblank[i] = 0b00110001;
+            }else{
+                linebuf_a[i] = 0b00100001;
+                linebuf_b[i] = 0b00100001;
+                linebuf_vblank[i] = 0b00100001;
+            }
+        }else if(i == 68){
+            // COLOR BURST + back porch(after burst)
+            linebuf_a[i] = 0b00010001;
+            linebuf_b[i] = 0b00010001;
+            linebuf_vblank[i] = 0b00010001;
+        }
+    }
+}
+
+void setDisplayMode(uint16_t mode){
+    const uint16_t previous_color_mode = color_mode;
+    if(mode == SCREEN_PALETTE){
+        // 2: SCREEN_PALETTE。1バイトで色を表し、有効色は 52 色
+        if(previous_color_mode == SCREEN_GRAYSCALE){
+            _restore_colorburst();
+        }
+        color_mode = SCREEN_PALETTE;
+        current_color = 1;
+        _display_size_x = DISP_RES_X - drawing_x_offset;
+    }
+    if(mode == SCREEN_GRAYSCALE){
+        // 1024: SCREEN_PALETTE。1バイトで濃淡を表し、有効色は 4 色
+        if(previous_color_mode == SCREEN_PALETTE){
+            _remove_colorburst();
+        }
+        color_mode = SCREEN_GRAYSCALE;
+        current_color = 1;
+        _display_size_x = DISP_RES_X_GRAYSCALE - drawing_x_offset * 2;
+        
+    }
 }
 
 void init_dma(){
