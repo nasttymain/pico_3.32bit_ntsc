@@ -155,3 +155,8 @@ int c_puts(const char* s){
     }
     return i;
 }
+
+void c_pos(int8_t x, int8_t y){
+    cpos = x + y * CCOLUMNS;
+    return;
+}
