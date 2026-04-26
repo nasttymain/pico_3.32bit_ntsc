@@ -108,7 +108,7 @@ constexpr const uint8_t font[768] = {
 int16_t cpos = 0;
 
 //
-extern constexpr const uint16_t CCOLUMNS = 64;
+extern constexpr const uint16_t CCOLUMNS = 23;
 
 // ascii文字を1つ描画
 void c_putc(char c){

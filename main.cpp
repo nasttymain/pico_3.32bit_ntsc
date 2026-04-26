@@ -1,7 +1,10 @@
+//#define VIDEO_TEST_PTN_COLOR
+
 #include <stdio.h>
 #include "rca.hpp"
 #include "rcavt.hpp"
 #include "pico/time.h"
+#include "swimming_triangle.hpp"
 
 void proc_cin();
 
@@ -20,50 +23,23 @@ int main() {
     
     clrgraph(1);
     while(1){
-        proc_cin();
-        
+        //proc_cin();
+        clrgraph(1);
+        swimming_triangle::frame();
         wait_for_vsync();
     }
 }
 
-void swimming_triangle(){
-    uint32_t c = 0;
-    uint32_t f = 0;
-    
-    int16_t x[3] = {20, 120, 70};
-    int16_t y[3] = {20, 120, 180};
-    int8_t ys[3] = {3, 3, 3};
-    int8_t xs[3] = {3, 3, 3};
-    
-    f = frame % (64 * 224);
-    c += 1;
-    palcolor(0);
-    for(uint8_t i = 0; i < 3; i += 1){
-        x[i] += xs[i];
-        y[i] += ys[i];
-        if(x[i] <= 0 && xs[i] < 0){
-            xs[i] = -xs[i];
-        }
-        if(y[i] <= 0 && ys[i] < 0){
-            ys[i] = -ys[i];
-        }
-        if(x[i] >= DISP_RES_X - 1 && xs[i] > 0){
-            xs[i] = -xs[i];
-        }
-        if(y[i] >= DISP_RES_Y - 1 && ys[i] > 0){
-            ys[i] = -ys[i];
-        }
-    }
-    triangle(x[0], y[0], x[1], y[1], x[2], y[2]);
-}
 
+uint8_t n = 0;
 void proc_cin(){
     while(1){
         int c = getchar_timeout_us(0);
         if(c == PICO_ERROR_TIMEOUT){
             break;
         }
-        palcolor(0);
+        palcolor(n);
+        n += 1;
         c_putc((char)c);
         if(c == 13){
             c_putc(10);
