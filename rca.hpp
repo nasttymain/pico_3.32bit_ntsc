@@ -471,6 +471,14 @@ void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
     }
 }
 
+void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
+    for(int16_t yc = y1; yc < y1 + (y2 - y1 + 1); yc += 1){
+        for(int16_t xc = x1; xc < x1 + (x2 - x1 + 1); xc += 1){
+            pset(xc, yc);
+        }
+    }
+}
+
 // ま、正確には待ってる対象は vblank なんだけどね
 void wait_for_vsync(){
     const auto f = frame;

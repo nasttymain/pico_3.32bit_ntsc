@@ -20,17 +20,19 @@ int main() {
         //proc_cin();
         clrgraph(1);
         swimming_triangle::frame();
+        boxf(20, 20, 50, 30);
         palcolor(0);
         tvvt::pos(0, 0);
         tvvt::puts("Hello, World!");
         wait_for_vsync();
+        /*
         if(frame % 300 == 0){
             if((frame / 300) % 2 == 1){
                 setDisplayMode(SCREEN_GRAYSCALE);
             }else{
                 setDisplayMode(SCREEN_PALETTE);
             }
-        }
+        }*/
     }
 }
 
