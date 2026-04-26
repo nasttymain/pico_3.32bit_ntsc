@@ -263,10 +263,10 @@ void pset(int16_t xpos, int16_t ypos){
         int32_t c = (((int32_t)y) << 8) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
-            framebuf[c] = framebuf[c] & 0b00001111 + (current_color << 4);
+            framebuf[c] = framebuf[c] & 0b00001111 + ((current_color & 0b00001111) << 4);
         }else{
             // 1: 右
-            framebuf[c] = framebuf[c] & 0b11110000 + (current_color);
+            framebuf[c] = framebuf[c] & 0b11110000 + ((current_color & 0b00001111));
         }
     }
 }
