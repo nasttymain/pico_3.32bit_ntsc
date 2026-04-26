@@ -21,8 +21,8 @@ int main() {
         clrgraph(1);
         swimming_triangle::frame();
         palcolor(0);
-        c_pos(0, 0);
-        c_puts("Hello, World!");
+        tvvt::pos(0, 0);
+        tvvt::puts("Hello, World!");
         wait_for_vsync();
         if(frame % 300 == 0){
             if((frame / 300) % 2 == 1){
@@ -48,9 +48,9 @@ void proc_cin(){
         }else{
             palcolor(0);
         }
-        c_putc((char)c);
+        tvvt::putc((char)c);
         if(c == 13){
-            c_putc(10);
+            tvvt::putc(10);
         }
     }
 }
