@@ -206,7 +206,7 @@ void hndirq0(void){
                 const uint_fast8_t pxdat = (i >> 2) + (linenum >= 120 ? 48 : 0);
                 // 以上、テストパターンジェネレータ
                 #endif
-                const int_fast8_t pxvalue[2] = {(int_fast8_t)((pxdat >> 4) & 0b00000011), (int_fast8_t)(pxdat & 0b00000011)};
+                const int_fast8_t pxvalue[2] = {(int_fast8_t)((pxdat >> 6) & 0b00000011), (int_fast8_t)(pxdat & 0b00000011)};
                 
                 const uint_fast8_t subpx[4] = {
                     amp2out[(pxvalue[0] << 1) + AMPINDEX_0IRE],
@@ -257,16 +257,16 @@ void pset(int16_t xpos, int16_t ypos){
     }
     if(color_mode == SCREEN_PALETTE){
         int32_t c = (((int32_t)y) << 8) + x;
-        framebuf[c] = current_color;
+        framebuf[c] = framebuf[c] & 0b11000000 + current_color & 0b00111111;
     }
     if(color_mode == SCREEN_GRAYSCALE){
         int32_t c = (((int32_t)y) << 8) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
-            framebuf[c] = framebuf[c] & 0b00001111 + ((current_color & 0b00001111) << 4);
+            framebuf[c] = framebuf[c] & 0b00111111 + ((current_color & 0b00000011) << 6);
         }else{
             // 1: 右
-            framebuf[c] = framebuf[c] & 0b11110000 + ((current_color & 0b00001111));
+            framebuf[c] = framebuf[c] & 0b11111100 + ((current_color & 0b00000011));
         }
     }
 }
