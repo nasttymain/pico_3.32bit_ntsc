@@ -113,6 +113,18 @@ namespace tvvt{
     //
     uint16_t CCOLUMNS = _display_size_x / 8;
 
+    void put_char_graphic(char c, int16_t xpos, int16_t ypos){
+        const uint8_t code = (uint8_t)(c) - 32;
+        for(int16_t x = 0; x < 8; x++){
+            const uint8_t row = font[code * 8 + x];
+            for(int16_t y = 0; y < 8; y++){
+                if(row & static_cast<uint8_t>(0x01 << y)){
+                    pset(xpos + x, ypos + y);
+                }
+            }
+        }
+    }
+    
     // ascii文字を1つ描画
     void putc(char c){
         CCOLUMNS = _display_size_x / 8;
@@ -129,19 +141,10 @@ namespace tvvt{
             }
             return;
         }
-        const uint8_t code = (uint8_t)(c) - 32;
         const int16_t base_x = (cpos % CCOLUMNS) * 8;
         const int16_t base_y = (cpos / CCOLUMNS) * 8;
 
-        for(int16_t x = 0; x < 8; x++){
-            const uint8_t row = font[code * 8 + x];
-            for(int16_t y = 0; y < 8; y++){
-                if(row & static_cast<uint8_t>(0x01 << y)){
-                    pset(base_x + x, base_y + y);
-                }
-            }
-        }
-
+        put_char_graphic(c, base_x, base_y);
         cpos += 1;
 
         return;

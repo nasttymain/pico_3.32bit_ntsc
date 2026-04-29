@@ -8,7 +8,7 @@
 
 void proc_cin();
 
-uint8_t mode = 0;
+uint8_t mode = 2;
 
 constexpr const char lorem[] = "LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT, SED DO EIUSMOD TEMPOR INCIDIDUNT UT LABORE ET DOLORE MAGNA ALIQUA. UT ENIM AD MINIM VENIAM, QUIS NOSTRUD EXERCITATION ULLAMCO LABORIS NISI UT ALIQUIP EX EA COMMODO CONSEQUAT. DUIS AUTE IRURE DOLOR IN REPREHENDERIT IN VOLUPTATE VELIT ESSE CILLUM DOLORE EU FUGIAT NULLA PARIATUR. EXCEPTEUR SINT OCCAECAT CUPIDATAT NON PROIDENT, SUNT IN CULPA QUI OFFICIA DESERUNT MOLLIT ANIM ID EST LABORUM.";
 
@@ -46,18 +46,32 @@ int main() {
         wait_for_vsync();
         // BEGIN MODE_CHANGE
         if(frame % 300 == 0){
-            mode = (mode + 1) % 3;
+            //mode = (mode + 1) % 3;
             if(mode % 3 == 0){
             }
             if(mode % 3 == 1){
             }
             if(mode % 3 == 2){
                 clrgraph(1);
-                for(int i = 0; i < 96; i += 1){
-                    const int x = (i * 8) % ::_display_size_x;
-                    const int y = (i * 8) / ::_display_size_x * 80;
+                const int left = _display_size_x / 2 - 160;
+                const int top = _display_size_y / 2 - 40;
+                for(int i = 0; i < 16; i += 1){
+                    char s[2];
+                    snprintf(s, 2, "%.1X", i);
+                    palcolor(0);
+                    tvvt::put_char_graphic(s[0], left + 20 * i + 6, top - 10);
+                }
+                for(int i = 0; i < 4; i += 1){
+                    char s[2];
+                    snprintf(s, 2, "%.1X", i);
+                    palcolor(0);
+                    tvvt::put_char_graphic(s[0], left - 10, top + 20 * i + 6);
+                }
+                for(int i = 0; i < 64; i += 1){
+                    const int x = (i / 4) % 16 * 20 + left;
+                    const int y = (i % 4) * 20 + top;
                     palcolor(i);
-                    boxf(x, y, x + 8, y + 80);
+                    boxf(x, y, x + 20, y + 20);
                 }
             }
         }
