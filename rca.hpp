@@ -17,6 +17,18 @@ void init_dma();
 #define SCREEN_GRAYSCALE 1024
 #define SCREEN_FULLWIDTH_COLOR 2048
 
+#define __TV_PAL_COLOR6(c, y) ((y & 3) + (((c) & 15) << 2))
+
+#define COLOR_RED           __TV_PAL_COLOR6(0x7, 0x1)
+#define COLOR_YELLOW        __TV_PAL_COLOR6(0x8, 0x2)
+#define COLOR_GREEN         __TV_PAL_COLOR6(0xB, 0x2)
+#define COLOR_SKYBLUE       __TV_PAL_COLOR6(0x1, 0x2)
+#define COLOR_BLUE          __TV_PAL_COLOR6(0x2, 0x0)
+#define COLOR_PURPLE        __TV_PAL_COLOR6(0x5, 0x2)
+#define COLOR_BLACK         __TV_PAL_COLOR6(0xC, 0x0)
+#define COLOR_DARKGRAY      __TV_PAL_COLOR6(0xC, 0x1)
+#define COLOR_LIGHTGRAY     __TV_PAL_COLOR6(0xC, 0x2)
+#define COLOR_WHITE         __TV_PAL_COLOR6(0xC, 0x3)
 
 /*
 void cls(uint8_t cls_mode);

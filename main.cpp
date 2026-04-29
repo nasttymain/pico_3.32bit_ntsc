@@ -13,39 +13,22 @@ uint8_t mode = 2;
 constexpr const char lorem[] = "LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT, SED DO EIUSMOD TEMPOR INCIDIDUNT UT LABORE ET DOLORE MAGNA ALIQUA. UT ENIM AD MINIM VENIAM, QUIS NOSTRUD EXERCITATION ULLAMCO LABORIS NISI UT ALIQUIP EX EA COMMODO CONSEQUAT. DUIS AUTE IRURE DOLOR IN REPREHENDERIT IN VOLUPTATE VELIT ESSE CILLUM DOLORE EU FUGIAT NULLA PARIATUR. EXCEPTEUR SINT OCCAECAT CUPIDATAT NON PROIDENT, SUNT IN CULPA QUI OFFICIA DESERUNT MOLLIT ANIM ID EST LABORUM.";
 
 int main() {
+    
+    gpio_init(0);
+    gpio_set_dir(0, GPIO_OUT);
+    gpio_put(0, 1);
+
     stdio_init_all();
     
     init_video_on_core1();
     
     setDisplayMode(SCREEN_FULLWIDTH_COLOR);
-    
-    palcolor(1);    
-    
     clrgraph(1);
+    
+    uint f = 0;
     while(1){
-        //proc_cin();
-        if(mode % 3 == 0){
-            clrgraph(1);
-            boxf(20, 20, 50, 30);
-            palcolor(0);
-            tvvt::pos(0, 0);
-            tvvt::puts("Hello, World!");
-            swimming_triangle::frame();
-        }
-        if(mode % 3 == 1){
-            if(frame % 60 == 1){
-                clrgraph(1);
-                palcolor(frame / 60 % 64);
-                tvvt::pos(0, 0);
-                tvvt::puts(lorem);
-            }            
-        }
-        if(mode % 3 == 2){
-            
-        }
-        wait_for_vsync();
         // BEGIN MODE_CHANGE
-        if(frame % 300 == 0){
+        if(f % 300 == 0){
             //mode = (mode + 1) % 3;
             if(mode % 3 == 0){
             }
@@ -73,9 +56,38 @@ int main() {
                     palcolor(i);
                     boxf(x, y, x + 20, y + 20);
                 }
+                const int left2 = _display_size_x / 2 - 100;
+                const int top2 = _display_size_y / 2 + 40;
+                const int preset_colors[10] = {COLOR_RED, COLOR_YELLOW, COLOR_GREEN, COLOR_SKYBLUE, COLOR_BLUE, COLOR_PURPLE, COLOR_BLACK, COLOR_DARKGRAY, COLOR_LIGHTGRAY, COLOR_WHITE};
+                for(int i = 0; i < 10; i += 1){
+                    palcolor(preset_colors[i]);
+                    boxf(left2 + 20 * i, top2, left2 + 20 * i + 20, top2 + 20);
+                }
+                gpio_put(0, 0);
             }
         }
         // END MODE_CHANGE
+        if(mode % 3 == 0){
+            clrgraph(1);
+            boxf(20, 20, 50, 30);
+            palcolor(0);
+            tvvt::pos(0, 0);
+            tvvt::puts("Hello, World!");
+            swimming_triangle::frame();
+        }
+        if(mode % 3 == 1){
+            if(frame % 60 == 1){
+                clrgraph(1);
+                palcolor(frame / 60 % 64);
+                tvvt::pos(0, 0);
+                tvvt::puts(lorem);
+            }            
+        }
+        if(mode % 3 == 2){
+            
+        }
+        wait_for_vsync();
+        f += 1;
     }
 }
 
