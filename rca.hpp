@@ -14,6 +14,7 @@ void init_dma();
 
 #define SCREEN_PALETTE 2
 #define SCREEN_GRAYSCALE 1024
+#define SCREEN_FULLWIDTH_COLOR 2048
 
 
 /*
@@ -56,7 +57,7 @@ constexpr const uint16_t LEN_LINE_LENGTH            = LEN_FRONT_PORCH + LEN_SYNC
 
 // 画面モードに関する変数
 uint16_t color_mode = SCREEN_PALETTE;
-int8_t drawing_x_offset = 4;
+int8_t drawing_x_offset = 0;
 
 volatile uint16_t lineno = 0;
 volatile uint32_t frame = 0;
@@ -196,7 +197,7 @@ void hndirq0(void){
                 (ptr_linebuf[flip])[xindex_base + (i << 1) + 1] = (subpx[2] << 4) + (subpx[3]);
             }
             // END LINE_DATA_CONSTRUCT WHEN SCREEN_PALETTE
-        }else{
+        }else if(color_mode == SCREEN_GRAYSCALE){
             // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_GRAYSCALE
             for(uint_fast16_t i = 0; i < 188; i += 1){
                 #ifndef VIDEO_TEST_PTN_COLOR
@@ -218,6 +219,24 @@ void hndirq0(void){
                 (ptr_linebuf[flip])[xindex_base + (i << 1) + 1] = (subpx[2] << 4) + (subpx[3]);
             }
             // END LINE_DATA_CONSTRUCT WHEN SCREEN_GRAYSCALE
+        }else{
+            // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_FULLWIDTH_COLOR
+            for(uint_fast16_t i = 0; i < 188; i += 1){
+                const uint_fast8_t pxdat = framebuf[lineoffset + i];
+                const int_fast8_t pxvalue[2] = {(int_fast8_t)((pxdat >> 6) & 0b00000011), (int_fast8_t)(pxdat & 0b00000011)};
+                const int_fast8_t pxcolorphase =  (pxdat & 0b00111100) >> 2;
+                const uint_fast8_t pxcolorvalue = (pxcolorphase >= 12 ? 0 : 1);
+                
+                const uint_fast8_t subpx[4] = {
+                    amp2out[(pxvalue[0] << 1) + sin12[(pxcolorphase) + 0] * pxcolorvalue + AMPINDEX_0IRE],
+                    amp2out[(pxvalue[0] << 1) + sin12[(pxcolorphase) + 3] * pxcolorvalue + AMPINDEX_0IRE],
+                    amp2out[(pxvalue[1] << 1) + sin12[(pxcolorphase) + 6] * pxcolorvalue + AMPINDEX_0IRE],
+                    amp2out[(pxvalue[1] << 1) + sin12[(pxcolorphase) + 9] * pxcolorvalue + AMPINDEX_0IRE]
+                };
+                (ptr_linebuf[flip])[xindex_base + (i << 1) + 0] = (subpx[0] << 4) + (subpx[1]);
+                (ptr_linebuf[flip])[xindex_base + (i << 1) + 1] = (subpx[2] << 4) + (subpx[3]);
+            }
+            // END LINE_DATA_CONSTRUCT WHEN SCREEN_FULLWIDTH_COLOR
         }
     }
     
@@ -256,17 +275,25 @@ void pset(int16_t xpos, int16_t ypos){
         return;
     }
     if(color_mode == SCREEN_PALETTE){
-        int32_t c = (((int32_t)y) << 8) + x;
+        const int32_t c = (((int32_t)y) << 8) + x;
         framebuf[c] = framebuf[c] & 0b11000000 + current_color & 0b00111111;
-    }
-    if(color_mode == SCREEN_GRAYSCALE){
-        int32_t c = (((int32_t)y) << 8) + (x >> 1);
+    }else if(color_mode == SCREEN_GRAYSCALE){
+        const int32_t c = (((int32_t)y) << 8) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
             framebuf[c] = framebuf[c] & 0b00111111 + ((current_color & 0b00000011) << 6);
         }else{
             // 1: 右
             framebuf[c] = framebuf[c] & 0b11111100 + ((current_color & 0b00000011));
+        }
+    }else if(color_mode == SCREEN_FULLWIDTH_COLOR){
+        const int32_t c = (((int32_t)y) << 8) + (x >> 1);
+        if((x & 1) == 0){
+            // 0: 左
+            framebuf[c] = framebuf[c] & 0b00000011 + ((current_color & 0b00000011) << 6) + (current_color & 0b00111100);
+        }else{
+            // 1: 右
+            framebuf[c] = framebuf[c] & 0b11000000 + ((current_color & 0b00000011))      + (current_color & 0b00111100);
         }
     }
 }
@@ -400,13 +427,21 @@ void setDisplayMode(uint16_t mode){
     }
     if(mode == SCREEN_GRAYSCALE){
         // 1024: SCREEN_PALETTE。1バイトで濃淡を表し、有効色は 4 色
-        if(previous_color_mode == SCREEN_PALETTE){
+        if(previous_color_mode == SCREEN_PALETTE || previous_color_mode == SCREEN_FULLWIDTH_COLOR){
             _remove_colorburst();
         }
         color_mode = SCREEN_GRAYSCALE;
         current_color = 1;
         _display_size_x = DISP_RES_X_GRAYSCALE - drawing_x_offset * 2;
         
+    }
+    if(mode == SCREEN_FULLWIDTH_COLOR){
+        if(previous_color_mode == SCREEN_GRAYSCALE){
+            _restore_colorburst();
+        }
+        color_mode = SCREEN_FULLWIDTH_COLOR;
+        current_color = 1;
+        _display_size_x = DISP_RES_X_GRAYSCALE - drawing_x_offset * 2;
     }
 }
 
@@ -493,6 +528,9 @@ inline uint8_t __clrgraph_pattern(uint8_t clr_mode){
     }
     if(color_mode == SCREEN_PALETTE){
         return 0b00110011;
+    }
+    if(color_mode == SCREEN_FULLWIDTH_COLOR){
+        return 0b11110011;
     }
     if(color_mode == SCREEN_GRAYSCALE){
         return 0b11000011;

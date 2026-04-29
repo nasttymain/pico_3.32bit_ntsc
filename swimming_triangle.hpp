@@ -22,10 +22,10 @@ namespace swimming_triangle{
             if(y[i] <= 0 && ys[i] < 0){
                 ys[i] = -ys[i];
             }
-            if(x[i] >= DISP_RES_X - 1 && xs[i] > 0){
+            if(x[i] >= ::_display_size_x - 1 && xs[i] > 0){
                 xs[i] = -xs[i];
             }
-            if(y[i] >= DISP_RES_Y - 1 && ys[i] > 0){
+            if(y[i] >= ::_display_size_y - 1 && ys[i] > 0){
                 ys[i] = -ys[i];
             }
         }
