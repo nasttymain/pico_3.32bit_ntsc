@@ -487,8 +487,21 @@ void wait_for_vsync(){
 }
 
 // 画面クリア
-void clrgraph(uint8_t color_code){
-    const uint8_t c = (color_code == 0) ? 0b00110000 : 0b00110011;
+inline uint8_t __clrgraph_pattern(uint8_t clr_mode){
+    if(clr_mode == 0){
+        return 0b00000000;
+    }
+    if(color_mode == SCREEN_PALETTE){
+        return 0b00110011;
+    }
+    if(color_mode == SCREEN_GRAYSCALE){
+        return 0b11000011;
+    }
+    return 0b00000000;
+};
+void clrgraph(uint8_t clr_mode){
+    const uint8_t c = __clrgraph_pattern(clr_mode);
+    
     for(int32_t i = 0; i < sizeof(framebuf) / sizeof(framebuf[0]); i += 1){
         framebuf[i] = c;
     }
