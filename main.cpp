@@ -10,6 +10,8 @@ void proc_cin();
 
 uint8_t mode = 0;
 
+constexpr const char lorem[] = "LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT, SED DO EIUSMOD TEMPOR INCIDIDUNT UT LABORE ET DOLORE MAGNA ALIQUA. UT ENIM AD MINIM VENIAM, QUIS NOSTRUD EXERCITATION ULLAMCO LABORIS NISI UT ALIQUIP EX EA COMMODO CONSEQUAT. DUIS AUTE IRURE DOLOR IN REPREHENDERIT IN VOLUPTATE VELIT ESSE CILLUM DOLORE EU FUGIAT NULLA PARIATUR. EXCEPTEUR SINT OCCAECAT CUPIDATAT NON PROIDENT, SUNT IN CULPA QUI OFFICIA DESERUNT MOLLIT ANIM ID EST LABORUM.";
+
 int main() {
     stdio_init_all();
     
@@ -22,7 +24,7 @@ int main() {
     clrgraph(1);
     while(1){
         //proc_cin();
-        if(mode % 2 == 0){
+        if(mode % 3 == 0){
             clrgraph(1);
             boxf(20, 20, 50, 30);
             palcolor(0);
@@ -30,21 +32,33 @@ int main() {
             tvvt::puts("Hello, World!");
             swimming_triangle::frame();
         }
-        if(mode % 2 == 1){
+        if(mode % 3 == 1){
             if(frame % 60 == 1){
                 clrgraph(1);
                 palcolor(frame / 60 % 64);
                 tvvt::pos(0, 0);
-                tvvt::puts("LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT, SED DO EIUSMOD TEMPOR INCIDIDUNT UT LABORE ET DOLORE MAGNA ALIQUA. UT ENIM AD MINIM VENIAM, QUIS NOSTRUD EXERCITATION ULLAMCO LABORIS NISI UT ALIQUIP EX EA COMMODO CONSEQUAT. DUIS AUTE IRURE DOLOR IN REPREHENDERIT IN VOLUPTATE VELIT ESSE CILLUM DOLORE EU FUGIAT NULLA PARIATUR. EXCEPTEUR SINT OCCAECAT CUPIDATAT NON PROIDENT, SUNT IN CULPA QUI OFFICIA DESERUNT MOLLIT ANIM ID EST LABORUM.");
+                tvvt::puts(lorem);
             }            
+        }
+        if(mode % 3 == 2){
+            
         }
         wait_for_vsync();
         // BEGIN MODE_CHANGE
         if(frame % 300 == 0){
-            mode = (mode + 1) % 4;
-            if(mode % 2 == 0){
+            mode = (mode + 1) % 3;
+            if(mode % 3 == 0){
             }
-            if(mode % 2 == 1){
+            if(mode % 3 == 1){
+            }
+            if(mode % 3 == 2){
+                clrgraph(1);
+                for(int i = 0; i < 96; i += 1){
+                    const int x = (i * 8) % ::_display_size_x;
+                    const int y = (i * 8) / ::_display_size_x * 80;
+                    palcolor(i);
+                    boxf(x, y, x + 8, y + 80);
+                }
             }
         }
         // END MODE_CHANGE

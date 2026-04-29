@@ -5,6 +5,7 @@ void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 void wait_for_vsync();
 void triangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
 void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
+void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 
 void init_framedata();
 void _remove_colorburst();
@@ -18,7 +19,6 @@ void init_dma();
 
 
 /*
-void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 void cls(uint8_t cls_mode);
 */
 
@@ -276,7 +276,7 @@ void pset(int16_t xpos, int16_t ypos){
     }
     if(color_mode == SCREEN_PALETTE){
         const int32_t c = (((int32_t)y) << 8) + x;
-        framebuf[c] = framebuf[c] & 0b11000000 + current_color & 0b00111111;
+        framebuf[c] = (framebuf[c] & 0b11000000) + (current_color & 0b00111111);
     }else if(color_mode == SCREEN_GRAYSCALE){
         const int32_t c = (((int32_t)y) << 8) + (x >> 1);
         if((x & 1) == 0){
@@ -290,10 +290,10 @@ void pset(int16_t xpos, int16_t ypos){
         const int32_t c = (((int32_t)y) << 8) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
-            framebuf[c] = framebuf[c] & 0b00000011 + ((current_color & 0b00000011) << 6) + (current_color & 0b00111100);
+            framebuf[c] = (framebuf[c] & 0b00000011) + ((current_color & 0b00000011) << 6) + (current_color & 0b00111100);
         }else{
             // 1: 右
-            framebuf[c] = framebuf[c] & 0b11000000 + ((current_color & 0b00000011))      + (current_color & 0b00111100);
+            framebuf[c] = (framebuf[c] & 0b11000000) + ((current_color & 0b00000011))      + (current_color & 0b00111100);
         }
     }
 }

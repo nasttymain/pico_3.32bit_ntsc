@@ -6,13 +6,13 @@ namespace swimming_triangle{
     
     int16_t x[3] = {20, 120, 70};
     int16_t y[3] = {20, 120, 180};
-    int8_t ys[3] = {3, 3, 3};
-    int8_t xs[3] = {3, 3, 3};
+    int8_t ys[3] = {3, -3, 3};
+    int8_t xs[3] = {3, -3, 3};
     void frame(){
         
         f = ::frame % (64 * 224);
         c += 1;
-        palcolor(f >> 6);
+        palcolor(f >> 5);
         for(uint8_t i = 0; i < 3; i += 1){
             x[i] += xs[i];
             y[i] += ys[i];
