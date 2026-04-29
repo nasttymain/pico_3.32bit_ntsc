@@ -8,7 +8,7 @@
 
 void proc_cin();
 
-uint8_t mode = 2;
+uint8_t mode = 0;
 
 constexpr const char lorem[] = "LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT, SED DO EIUSMOD TEMPOR INCIDIDUNT UT LABORE ET DOLORE MAGNA ALIQUA. UT ENIM AD MINIM VENIAM, QUIS NOSTRUD EXERCITATION ULLAMCO LABORIS NISI UT ALIQUIP EX EA COMMODO CONSEQUAT. DUIS AUTE IRURE DOLOR IN REPREHENDERIT IN VOLUPTATE VELIT ESSE CILLUM DOLORE EU FUGIAT NULLA PARIATUR. EXCEPTEUR SINT OCCAECAT CUPIDATAT NON PROIDENT, SUNT IN CULPA QUI OFFICIA DESERUNT MOLLIT ANIM ID EST LABORUM.";
 
@@ -29,7 +29,7 @@ int main() {
     while(1){
         // BEGIN MODE_CHANGE
         if(f % 300 == 0){
-            //mode = (mode + 1) % 3;
+            mode = (mode + 1) % 3;
             if(mode % 3 == 0){
             }
             if(mode % 3 == 1){
@@ -37,7 +37,7 @@ int main() {
             if(mode % 3 == 2){
                 clrgraph(1);
                 const int left = _display_size_x / 2 - 160;
-                const int top = _display_size_y / 2 - 40;
+                const int top = _display_size_y / 2 - 80;
                 for(int i = 0; i < 16; i += 1){
                     char s[2];
                     snprintf(s, 2, "%.1X", i);
@@ -76,9 +76,9 @@ int main() {
             swimming_triangle::frame();
         }
         if(mode % 3 == 1){
-            if(frame % 60 == 1){
+            if(f % 60 == 1){
                 clrgraph(1);
-                palcolor(frame / 60 % 64);
+                palcolor(f / 60 % 64);
                 tvvt::pos(0, 0);
                 tvvt::puts(lorem);
             }            
