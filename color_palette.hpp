@@ -25,9 +25,9 @@ namespace color_palette{
             palcolor(i);
             boxf(x, y, x + 20, y + 20);
         }
-        const int left2 = _display_size_x / 2 - 100;
+        const int left2 = _display_size_x / 2 - 110;
         const int top2 = _display_size_y / 2 + 40;
-        const int preset_colors[10] = {COLOR_RED, COLOR_YELLOW, COLOR_GREEN, COLOR_SKYBLUE, COLOR_BLUE, COLOR_PURPLE, COLOR_BLACK, COLOR_DARKGRAY, COLOR_LIGHTGRAY, COLOR_WHITE};
+        const int preset_colors[11] = {COLOR_RED, COLOR_ORANGE, COLOR_YELLOW, COLOR_GREEN, COLOR_SKYBLUE, COLOR_BLUE, COLOR_PURPLE, COLOR_BLACK, COLOR_DARKGRAY, COLOR_LIGHTGRAY, COLOR_WHITE};
         for(int i = 0; i < 10; i += 1){
             palcolor(preset_colors[i]);
             boxf(left2 + 20 * i, top2, left2 + 20 * i + 20, top2 + 20);

@@ -20,6 +20,7 @@ void init_dma();
 #define __TV_PAL_COLOR6(c, y) ((y & 3) + (((c) & 15) << 2))
 
 #define COLOR_RED           __TV_PAL_COLOR6(0x7, 0x1)
+#define COLOR_ORANGE        __TV_PAL_COLOR6(0x7, 0x2)
 #define COLOR_YELLOW        __TV_PAL_COLOR6(0x8, 0x2)
 #define COLOR_GREEN         __TV_PAL_COLOR6(0xB, 0x2)
 #define COLOR_SKYBLUE       __TV_PAL_COLOR6(0x1, 0x2)

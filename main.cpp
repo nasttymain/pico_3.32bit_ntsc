@@ -5,6 +5,7 @@
 #include "rcavt.hpp"
 #include "pico/time.h"
 #include "swimming_triangle.hpp"
+#include "color_palette.hpp"
 
 void proc_cin();
 
@@ -26,6 +27,17 @@ int main() {
     clrgraph(1);
     
     uint f = 0;
+    
+    while(1){
+        wait_for_vsync();
+        f += 1;
+        if(f % 1 == 0){
+            color_palette::draw();
+            gpio_put(0, 0);
+        }
+    }
+}
+    /*
     while(1){
         // BEGIN MODE_CHANGE
         if(f % 300 == 0){
@@ -35,34 +47,7 @@ int main() {
             if(mode % 3 == 1){
             }
             if(mode % 3 == 2){
-                clrgraph(1);
-                const int left = _display_size_x / 2 - 160;
-                const int top = _display_size_y / 2 - 80;
-                for(int i = 0; i < 16; i += 1){
-                    char s[2];
-                    snprintf(s, 2, "%.1X", i);
-                    palcolor(0);
-                    tvvt::put_char_graphic(s[0], left + 20 * i + 6, top - 10);
-                }
-                for(int i = 0; i < 4; i += 1){
-                    char s[2];
-                    snprintf(s, 2, "%.1X", i);
-                    palcolor(0);
-                    tvvt::put_char_graphic(s[0], left - 10, top + 20 * i + 6);
-                }
-                for(int i = 0; i < 64; i += 1){
-                    const int x = (i / 4) % 16 * 20 + left;
-                    const int y = (i % 4) * 20 + top;
-                    palcolor(i);
-                    boxf(x, y, x + 20, y + 20);
-                }
-                const int left2 = _display_size_x / 2 - 100;
-                const int top2 = _display_size_y / 2 + 40;
-                const int preset_colors[10] = {COLOR_RED, COLOR_YELLOW, COLOR_GREEN, COLOR_SKYBLUE, COLOR_BLUE, COLOR_PURPLE, COLOR_BLACK, COLOR_DARKGRAY, COLOR_LIGHTGRAY, COLOR_WHITE};
-                for(int i = 0; i < 10; i += 1){
-                    palcolor(preset_colors[i]);
-                    boxf(left2 + 20 * i, top2, left2 + 20 * i + 20, top2 + 20);
-                }
+                color_palette::draw();
                 gpio_put(0, 0);
             }
         }
@@ -90,6 +75,7 @@ int main() {
         f += 1;
     }
 }
+*/
 
 
 uint8_t n = 0;
