@@ -31,6 +31,8 @@ namespace color_palette{
         for(int i = 0; i < 10; i += 1){
             palcolor(preset_colors[i]);
             boxf(left2 + 20 * i, top2, left2 + 20 * i + 20, top2 + 20);
+            palcolor(0);
+            box (left2 + 20 * i, top2, left2 + 20 * i + 20, top2 + 20);
         }
 
     }

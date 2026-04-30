@@ -31,7 +31,7 @@ int main() {
     while(1){
         wait_for_vsync();
         f += 1;
-        if(f % 1 == 0){
+        if(f % 2 == 0){
             color_palette::draw();
             gpio_put(0, 0);
         }

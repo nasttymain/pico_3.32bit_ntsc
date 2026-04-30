@@ -6,6 +6,7 @@ void wait_for_vsync();
 void triangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
 void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
 void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
+void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 
 void init_framedata();
 void _remove_colorburst();
@@ -525,6 +526,13 @@ void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
             pset(xc, yc);
         }
     }
+}
+
+void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
+    line(x1, y1, x1, y2);
+    line(x2, y1, x2, y2);
+    line(x1, y1, x2, y1);
+    line(x1, y2, x2, y2);
 }
 
 // ま、正確には待ってる対象は vblank なんだけどね
