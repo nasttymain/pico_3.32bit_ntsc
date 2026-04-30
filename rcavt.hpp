@@ -1,5 +1,7 @@
 #include "rca.hpp"
 
+#ifndef __NASTTY_RCA_TVVT__
+#define __NASTTY_RCA_TVVT__
 
 namespace tvvt{
     
@@ -168,3 +170,5 @@ namespace tvvt{
         return;
     }
 };
+
+#endif
