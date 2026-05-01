@@ -639,6 +639,7 @@ uint8_t is_core1_initialized = 0;
 void core1_main(){
     sleep_ms(10);
     bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_R_BITS | BUSCTRL_BUS_PRIORITY_DMA_W_BITS;
+    bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_R_BITS | BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_PROC1_BITS;
     sleep_ms(10);
     init_framedata();
     init_dma();
