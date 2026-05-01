@@ -94,7 +94,7 @@ constexpr const uint16_t DISP_RES_Y = 240;
 uint16_t _display_size_x = DISP_RES_X - drawing_x_offset;
 uint16_t _display_size_y = DISP_RES_Y;
 
-uint8_t framebuf[256 * DISP_RES_Y] __attribute__((aligned(4)));
+uint8_t framebuf[192 * DISP_RES_Y] __attribute__((aligned(4)));
 
 
 
@@ -184,7 +184,7 @@ void hndirq0(void){
         // 次の flip に対して書込処理を行う
         constexpr const uint_fast16_t xindex_base = 79;
         const uint_fast16_t linenum = (lineno - 28);
-        const uint_fast32_t lineoffset = linenum << 8;
+        const uint_fast32_t lineoffset = (linenum << 7) + (linenum << 6);
         // 映像として有効な x 方向のlinebufの添字は、79～454(455は捨てる)の376バイト、188ピクセル。
         
         if(color_mode == SCREEN_PALETTE){
@@ -289,10 +289,10 @@ void pset(int16_t xpos, int16_t ypos){
         return;
     }
     if(color_mode == SCREEN_PALETTE){
-        const int32_t c = (((int32_t)y) << 8) + x;
+        const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + x;
         framebuf[c] = (framebuf[c] & 0b11000000) + (current_color & 0b00111111);
     }else if(color_mode == SCREEN_GRAYSCALE){
-        const int32_t c = (((int32_t)y) << 8) + (x >> 1);
+        const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
             framebuf[c] = framebuf[c] & 0b00111111 + ((current_color & 0b00000011) << 6);
@@ -301,7 +301,7 @@ void pset(int16_t xpos, int16_t ypos){
             framebuf[c] = framebuf[c] & 0b11111100 + ((current_color & 0b00000011));
         }
     }else if(color_mode == SCREEN_FULLWIDTH_COLOR){
-        const int32_t c = (((int32_t)y) << 8) + (x >> 1);
+        const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
             framebuf[c] = (framebuf[c] & 0b00000011) + ((current_color & 0b00000011) << 6) + (current_color & 0b00111100);
