@@ -553,7 +553,7 @@ void wait_for_vsync(){
 // 画面クリア
 inline uint8_t __clrgraph_pattern(uint8_t clr_mode){
     if(clr_mode == 0){
-        return 0b00000000;
+        return 0b00110000;
     }
     if(color_mode == SCREEN_PALETTE){
         return 0b00110011;
