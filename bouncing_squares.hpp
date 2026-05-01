@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 namespace bouncing_squares{
-    constexpr const uint16_t BOXCOUNT = 512;
+    constexpr const uint16_t BOXCOUNT = 1024;
     float bx[BOXCOUNT];
     float by[BOXCOUNT];
     float bxs[BOXCOUNT];
@@ -28,10 +28,10 @@ namespace bouncing_squares{
             if(bx[i] < 0.0 && bxs[i] < 0.0){
                 bxs[i] = -bxs[i];
             }
-            if(bx[i] > 360.0 && bxs[i] > 0.0){
+            if(bx[i] > 360.0 - 24 && bxs[i] > 0.0){
                 bxs[i] = -bxs[i];
             }
-            if(by[i] > 240.0 && bys[i] > 0.0){
+            if(by[i] > 240.0 - 24 && bys[i] > 0.0){
                 bys[i] = -bys[i];
             }
         }
@@ -39,8 +39,8 @@ namespace bouncing_squares{
             palcolor(i % 64);
             boxf(bx[i], by[i], bx[i] + 24, by[i] + 24);
         }
-        char s[8];
-        snprintf(s, 7, "%u", fc);
+        char s[10];
+        snprintf(s, 9, "%u", fc);
         fc += 1;
         tvvt::pos(2, 0);
         palcolor(COLOR_BLACK);

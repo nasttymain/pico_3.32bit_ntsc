@@ -72,7 +72,7 @@ constexpr const uint16_t LEN_LINE_LENGTH            = LEN_FRONT_PORCH + LEN_SYNC
 
 // 画面モードに関する変数
 uint16_t color_mode = SCREEN_PALETTE;
-int8_t drawing_x_offset = 0;
+int8_t drawing_x_offset = 8;
 
 volatile uint16_t lineno = 0;
 volatile uint32_t frame = 0;
@@ -92,7 +92,7 @@ constexpr const uint16_t DISP_RES_X = (LEN_ACTIVE_VIDEO) / 4;
 constexpr const uint16_t DISP_RES_X_GRAYSCALE = LEN_ACTIVE_VIDEO / 2;
 constexpr const uint16_t DISP_RES_Y = 240;
 
-uint16_t _display_size_x = DISP_RES_X - drawing_x_offset;
+uint16_t _display_size_x = 180;
 uint16_t _display_size_y = DISP_RES_Y;
 
 constexpr const size_t FRAMEBUF_MEM_SIZE = 192 * DISP_RES_Y;
@@ -285,7 +285,7 @@ void main_program_init(PIO pio, uint sm, uint offset, uint pin) {
 }
 
 void pset(int16_t xpos, int16_t ypos){
-    const int_fast16_t x = xpos + ((color_mode == SCREEN_GRAYSCALE) ? drawing_x_offset * 2: drawing_x_offset);
+    const int_fast16_t x = xpos + drawing_x_offset;
     const int_fast16_t y = ypos;
     if(x < 0 || x >= _display_size_x){
         return;
@@ -442,7 +442,7 @@ void setDisplayMode(uint16_t mode){
         }
         color_mode = SCREEN_PALETTE;
         current_color = 1;
-        _display_size_x = DISP_RES_X - drawing_x_offset;
+        _display_size_x = 180;
     }
     if(mode == SCREEN_GRAYSCALE){
         // 1024: SCREEN_PALETTE。1バイトで濃淡を表し、有効色は 4 色
@@ -451,7 +451,7 @@ void setDisplayMode(uint16_t mode){
         }
         color_mode = SCREEN_GRAYSCALE;
         current_color = 1;
-        _display_size_x = DISP_RES_X_GRAYSCALE - drawing_x_offset * 2;
+        _display_size_x = 360;
         
     }
     if(mode == SCREEN_FULLWIDTH_COLOR){
@@ -460,7 +460,7 @@ void setDisplayMode(uint16_t mode){
         }
         color_mode = SCREEN_FULLWIDTH_COLOR;
         current_color = 1;
-        _display_size_x = DISP_RES_X_GRAYSCALE - drawing_x_offset * 2;
+        _display_size_x = 360;
     }
 }
 
