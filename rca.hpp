@@ -280,8 +280,8 @@ void main_program_init(PIO pio, uint sm, uint offset, uint pin) {
 }
 
 void pset(int16_t xpos, int16_t ypos){
-    const int16_t x = xpos + ((color_mode == SCREEN_GRAYSCALE) ? drawing_x_offset * 2: drawing_x_offset);
-    const int16_t y = ypos;
+    const int_fast16_t x = xpos + ((color_mode == SCREEN_GRAYSCALE) ? drawing_x_offset * 2: drawing_x_offset);
+    const int_fast16_t y = ypos;
     if(x < 0 || x >= _display_size_x){
         return;
     }
@@ -321,7 +321,7 @@ void palcolor(uint8_t palno){
 // core0 でも init_framedata と init_dma を呼べば動く。USB割り込みで荒れるけど
 void init_framedata(){    
     // NTSCカラーの場合:
-    for(uint16_t i = 0; i < LINEBUF_LEN; i += 1){
+    for(uint_fast16_t i = 0; i < LINEBUF_LEN; i += 1){
         if(i < 10){
             // front porch
             linebuf_a[i] = 0b00010001;
@@ -390,7 +390,7 @@ void init_framedata(){
 }
 
 void _remove_colorburst(){
-    for(uint16_t i = 49; i < 69; i += 1){
+    for(uint_fast16_t i = 49; i < 69; i += 1){
         linebuf_a[i] = 0b00010001;
         linebuf_b[i] = 0b00010001;
         linebuf_vblank[i] = 0b00010001;
@@ -400,7 +400,7 @@ void _remove_colorburst(){
 
 void _restore_colorburst(){
     // init_framedata から転記している。そっちを修正の場合はこちらの修正も忘れないこと!
-    for(uint16_t i = 49; i < 69; i += 1){
+    for(uint_fast16_t i = 49; i < 69; i += 1){
         if(i == 49){
             // back porch(before burst) + COLOR BURST(真ん中スタートとする)
             // つまるところ、カラーバーストの0度位相は、奇数添字の後半要素。
@@ -504,7 +504,7 @@ void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
     }
     int16_t y = y1;
     int ierror = 0;
-    for(int16_t x = x1; x <= x2; x += 1){
+    for(int_fast16_t x = x1; x <= x2; x += 1){
         if(steep){
             pset(y, x);
         }else{
@@ -521,8 +521,8 @@ void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
 }
 
 void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
-    for(int16_t yc = y1; yc < y1 + (y2 - y1 + 1); yc += 1){
-        for(int16_t xc = x1; xc < x1 + (x2 - x1 + 1); xc += 1){
+    for(int_fast16_t yc = y1; yc < y1 + (y2 - y1 + 1); yc += 1){
+        for(int_fast16_t xc = x1; xc < x1 + (x2 - x1 + 1); xc += 1){
             pset(xc, yc);
         }
     }
@@ -561,7 +561,7 @@ inline uint8_t __clrgraph_pattern(uint8_t clr_mode){
 void clrgraph(uint8_t clr_mode){
     const uint8_t c = __clrgraph_pattern(clr_mode);
     
-    for(int32_t i = 0; i < sizeof(framebuf) / sizeof(framebuf[0]); i += 1){
+    for(int_fast32_t i = 0; i < sizeof(framebuf) / sizeof(framebuf[0]); i += 1){
         framebuf[i] = c;
     }
 }
@@ -590,7 +590,7 @@ void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16
         std::swap(y2, y3);
     }
     
-    for(int16_t ycnt = y1; ycnt < y3; ycnt += 1){
+    for(int_fast16_t ycnt = y1; ycnt < y3; ycnt += 1){
         int16_t xleft;
         if (ycnt < y2){
             xleft = x1 + (((x2 - x1) * 16) * ((ycnt - y1) * 16) / ((y2 - y1) * 16) + 8) / 16;
