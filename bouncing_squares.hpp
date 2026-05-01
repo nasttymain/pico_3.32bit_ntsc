@@ -31,7 +31,7 @@ namespace bouncing_squares{
                 bxs[i] = -bxs[i];
             }
             if(by[i] > 240.0 && bys[i] > 0.0){
-                bys[i] = -bys[i] * 0.9;
+                bys[i] = -bys[i];
             }
         }
         for(uint_fast16_t i = 0; i < BOXCOUNT; i += 1){

@@ -50,6 +50,7 @@ void cls(uint8_t cls_mode);
 #include <utility>
 #include "pico/time.h"
 #include "pico/multicore.h"
+#include "hardware/structs/bus_ctrl.h"
 
 #define START_PIN 16
 #define ROW_PINS 4
@@ -565,10 +566,8 @@ inline uint8_t __clrgraph_pattern(uint8_t clr_mode){
 void clrgraph(uint8_t clr_mode){
     const uint8_t c = __clrgraph_pattern(clr_mode);
     
-    for(int_fast8_t _f = 0; _f < 2; _f += 1){
-        for(int_fast32_t i = 0; i < FRAMEBUF_MEM_SIZE; i += 1){
-            framebuf[flip_offset + i] = c;
-        }
+    for(int_fast32_t i = 0; i < FRAMEBUF_MEM_SIZE; i += 1){
+        framebuf[flip_offset + i] = c;
     }
 }
 
@@ -638,6 +637,8 @@ void do_flip(){
 
 uint8_t is_core1_initialized = 0;
 void core1_main(){
+    sleep_ms(10);
+    bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_R_BITS | BUSCTRL_BUS_PRIORITY_DMA_W_BITS;
     sleep_ms(10);
     init_framedata();
     init_dma();

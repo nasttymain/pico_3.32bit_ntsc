@@ -35,8 +35,8 @@ int main() {
     while(1){
         f += 1;
         wait_for_vsync();
-        bouncing_squares::draw();
         do_flip();
+        bouncing_squares::draw();
         gpio_put(0, 0);
     }
 }
