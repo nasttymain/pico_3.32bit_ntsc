@@ -95,8 +95,11 @@ uint16_t _display_size_x = DISP_RES_X - drawing_x_offset;
 uint16_t _display_size_y = DISP_RES_Y;
 
 constexpr const size_t FRAMEBUF_MEM_SIZE = 192 * DISP_RES_Y;
-uint8_t framebuf[FRAMEBUF_MEM_SIZE] __attribute__((aligned(4)));
-uint8_t* currentfb = framebuf;
+uint8_t framebuf[FRAMEBUF_MEM_SIZE * 2] __attribute__((aligned(4)));
+uint32_t flip_offset = 0;
+uint32_t flip_draw_offset = 0;
+
+uint8_t flip_mode = 0;
 
 
 PIO pio = pio0;
@@ -192,7 +195,7 @@ void hndirq0(void){
             // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_PALETTE
             for(uint_fast16_t i = 0; i < 188; i += 1){
                 #ifndef VIDEO_TEST_PTN_COLOR
-                const uint_fast8_t pxdat = framebuf[lineoffset + i];
+                const uint_fast8_t pxdat = framebuf[flip_draw_offset + lineoffset + i];
                 #else
                 // 以下、テストパターンジェネレータ
                 const uint_fast8_t pxdat = (i >> 2) + (linenum >= 120 ? 48 : 0);
@@ -216,7 +219,7 @@ void hndirq0(void){
             // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_GRAYSCALE
             for(uint_fast16_t i = 0; i < 188; i += 1){
                 #ifndef VIDEO_TEST_PTN_COLOR
-                const uint_fast8_t pxdat = framebuf[lineoffset + i];
+                const uint_fast8_t pxdat = framebuf[flip_draw_offset + lineoffset + i];
                 #else
                 // 以下、テストパターンジェネレータ
                 const uint_fast8_t pxdat = (i >> 2) + (linenum >= 120 ? 48 : 0);
@@ -237,7 +240,7 @@ void hndirq0(void){
         }else{
             // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_FULLWIDTH_COLOR
             for(uint_fast16_t i = 0; i < 188; i += 1){
-                const uint_fast8_t pxdat = framebuf[lineoffset + i];
+                const uint_fast8_t pxdat = framebuf[flip_draw_offset + lineoffset + i];
                 const int_fast8_t pxvalue[2] = {(int_fast8_t)((pxdat >> 6) & 0b00000011), (int_fast8_t)(pxdat & 0b00000011)};
                 const int_fast8_t pxcolorphase =  (pxdat & 0b00111100) >> 2;
                 const uint_fast8_t pxcolorvalue = (pxcolorphase >= 12 ? 0 : 1);
@@ -291,24 +294,24 @@ void pset(int16_t xpos, int16_t ypos){
     }
     if(color_mode == SCREEN_PALETTE){
         const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + x;
-        framebuf[c] = (framebuf[c] & 0b11000000) + (current_color & 0b00111111);
+        framebuf[flip_offset + c] = (framebuf[flip_offset + c] & 0b11000000) + (current_color & 0b00111111);
     }else if(color_mode == SCREEN_GRAYSCALE){
         const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
-            framebuf[c] = framebuf[c] & 0b00111111 + ((current_color & 0b00000011) << 6);
+            framebuf[flip_offset + c] = framebuf[flip_offset + c] & 0b00111111 + ((current_color & 0b00000011) << 6);
         }else{
             // 1: 右
-            framebuf[c] = framebuf[c] & 0b11111100 + ((current_color & 0b00000011));
+            framebuf[flip_offset + c] = framebuf[flip_offset + c] & 0b11111100 + ((current_color & 0b00000011));
         }
     }else if(color_mode == SCREEN_FULLWIDTH_COLOR){
         const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
-            framebuf[c] = (framebuf[c] & 0b00000011) + ((current_color & 0b00000011) << 6) + (current_color & 0b00111100);
+            framebuf[flip_offset + c] = (framebuf[flip_offset + c] & 0b00000011) + ((current_color & 0b00000011) << 6) + (current_color & 0b00111100);
         }else{
             // 1: 右
-            framebuf[c] = (framebuf[c] & 0b11000000) + ((current_color & 0b00000011))      + (current_color & 0b00111100);
+            framebuf[flip_offset + c] = (framebuf[flip_offset + c] & 0b11000000) + ((current_color & 0b00000011))      + (current_color & 0b00111100);
         }
     }
 }
@@ -562,8 +565,10 @@ inline uint8_t __clrgraph_pattern(uint8_t clr_mode){
 void clrgraph(uint8_t clr_mode){
     const uint8_t c = __clrgraph_pattern(clr_mode);
     
-    for(int_fast32_t i = 0; i < FRAMEBUF_MEM_SIZE; i += 1){
-        framebuf[i] = c;
+    for(int_fast8_t _f = 0; _f < 2; _f += 1){
+        for(int_fast32_t i = 0; i < FRAMEBUF_MEM_SIZE; i += 1){
+            framebuf[flip_offset + i] = c;
+        }
     }
 }
 
@@ -605,6 +610,31 @@ void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16
     
 }
 
+void set_flip_mode(uint8_t flag){
+    flip_mode = (flag != 0) ? 1 : 0;
+    if(flip_mode == 0){
+        flip_offset = 0;
+        flip_draw_offset = 0;
+    }
+    if(flip_mode == 1){
+        flip_draw_offset = 0;
+        flip_offset = FRAMEBUF_MEM_SIZE;
+    }
+}
+
+void do_flip(){
+    if(flip_mode == 0){
+        return;
+    }
+    
+    if(flip_offset != 0){
+        flip_offset = 0;
+        flip_draw_offset = FRAMEBUF_MEM_SIZE;
+    }else{
+        flip_offset = FRAMEBUF_MEM_SIZE;
+        flip_draw_offset = 0;
+    }
+}
 
 uint8_t is_core1_initialized = 0;
 void core1_main(){

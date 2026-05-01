@@ -31,7 +31,7 @@ namespace bouncing_squares{
                 bxs[i] = -bxs[i];
             }
             if(by[i] > 240.0 && bys[i] > 0.0){
-                bys[i] = -bys[i];
+                bys[i] = -bys[i] * 0.9;
             }
         }
         for(uint_fast16_t i = 0; i < BOXCOUNT; i += 1){
@@ -40,7 +40,7 @@ namespace bouncing_squares{
         }
         char s[8];
         snprintf(s, 7, "%u", ::frame);
-        tvvt::pos(0, 0);
+        tvvt::pos(2, 0);
         palcolor(COLOR_BLACK);
         tvvt::puts(s);
     }

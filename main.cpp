@@ -25,17 +25,19 @@ int main() {
     init_video_on_core1();
     
     setDisplayMode(SCREEN_FULLWIDTH_COLOR);
+    
+    set_flip_mode(1);
+    
     clrgraph(1);
     
     uint f = 0;
     
     while(1){
-        wait_for_vsync();
         f += 1;
-        if(f % 2 == 0){
-            bouncing_squares::draw();
-            gpio_put(0, 0);
-        }
+        wait_for_vsync();
+        bouncing_squares::draw();
+        do_flip();
+        gpio_put(0, 0);
     }
 }
     /*
