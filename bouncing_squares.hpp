@@ -3,20 +3,21 @@
 #include <stdio.h>
 
 namespace bouncing_squares{
-    constexpr const uint16_t BOXCOUNT = 96;
+    constexpr const uint16_t BOXCOUNT = 512;
     float bx[BOXCOUNT];
     float by[BOXCOUNT];
     float bxs[BOXCOUNT];
     float bys[BOXCOUNT];
+    uint32_t fc = 0;
     uint8_t initd = 0;
     void draw(){
         clrgraph(1);
         if(initd == 0){
             for(uint_fast16_t i = 0; i < BOXCOUNT; i += 1){
-                bx[i] = (float)(rand() % 360);
-                by[i] = (float)(rand() % 240);
-                bxs[i] = (float)(rand() % 41 - 20) / 10;
-                bys[i] = (float)(rand() % 41 - 20) / 10;
+                bx[i] = (float)(rand() % 3600) / 10;
+                by[i] = (float)(rand() % 2400) / 10;
+                bxs[i] = (float)(rand() % 401 - 200) / 100;
+                bys[i] = (float)(rand() % 401 - 200) / 100;
             }
             initd = 1;
         }
@@ -39,7 +40,8 @@ namespace bouncing_squares{
             boxf(bx[i], by[i], bx[i] + 24, by[i] + 24);
         }
         char s[8];
-        snprintf(s, 7, "%u", ::frame);
+        snprintf(s, 7, "%u", fc);
+        fc += 1;
         tvvt::pos(2, 0);
         palcolor(COLOR_BLACK);
         tvvt::puts(s);
