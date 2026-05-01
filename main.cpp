@@ -6,6 +6,7 @@
 #include "pico/time.h"
 #include "swimming_triangle.hpp"
 #include "color_palette.hpp"
+#include "bouncing_squares.hpp"
 
 void proc_cin();
 
@@ -32,7 +33,7 @@ int main() {
         wait_for_vsync();
         f += 1;
         if(f % 2 == 0){
-            color_palette::draw();
+            bouncing_squares::draw();
             gpio_put(0, 0);
         }
     }

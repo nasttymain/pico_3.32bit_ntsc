@@ -94,8 +94,9 @@ constexpr const uint16_t DISP_RES_Y = 240;
 uint16_t _display_size_x = DISP_RES_X - drawing_x_offset;
 uint16_t _display_size_y = DISP_RES_Y;
 
-uint8_t framebuf[192 * DISP_RES_Y] __attribute__((aligned(4)));
-
+constexpr const size_t FRAMEBUF_MEM_SIZE = 192 * DISP_RES_Y;
+uint8_t framebuf[FRAMEBUF_MEM_SIZE] __attribute__((aligned(4)));
+uint8_t* currentfb = framebuf;
 
 
 PIO pio = pio0;
@@ -561,7 +562,7 @@ inline uint8_t __clrgraph_pattern(uint8_t clr_mode){
 void clrgraph(uint8_t clr_mode){
     const uint8_t c = __clrgraph_pattern(clr_mode);
     
-    for(int_fast32_t i = 0; i < sizeof(framebuf) / sizeof(framebuf[0]); i += 1){
+    for(int_fast32_t i = 0; i < FRAMEBUF_MEM_SIZE; i += 1){
         framebuf[i] = c;
     }
 }
