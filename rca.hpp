@@ -86,6 +86,9 @@ uint8_t* ptr_linebuf[2] = {linebuf_a, linebuf_b};
 uint8_t linebuf_vblank[LINEBUF_LEN] __attribute__((aligned(4)));
 uint8_t linebuf_vsync[LINEBUF_LEN] __attribute__((aligned(4)));
 
+#define VIEWPORT_RES_X 360
+#define VIEWPORT_RES_Y 240
+
 
 // X 方向に 189 pixel。縦は 224 ラインを使う
 constexpr const uint16_t DISP_RES_X = (LEN_ACTIVE_VIDEO) / 4;
