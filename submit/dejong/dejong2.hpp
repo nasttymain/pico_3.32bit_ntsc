@@ -21,7 +21,7 @@ namespace dejong_m{
     static float y_new;
     static uint16_t shikisou = 0;
 
-    static uint8_t dejong_current_var = 0;
+    static int dejong_current_var = 0;
 
     static uint32_t rnd(uint32_t m){
         return rand() % (m + 1);
