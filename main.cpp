@@ -8,11 +8,18 @@
 #include "color_palette.hpp"
 #include "bouncing_squares.hpp"
 
+#include "submit/lineart/lineart.cpp"
+#include "submit/lineart/multilineart.hpp"
+#include "submit/dejong/dejong2.hpp"
+#include "submit/rose/rose.hpp"
+#include "font.hpp"
+#include "title_call.hpp"
+
 void proc_cin();
 
-uint8_t mode = 0;
+int pattern_variation = 0;
 
-constexpr const char lorem[] = "LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT, SED DO EIUSMOD TEMPOR INCIDIDUNT UT LABORE ET DOLORE MAGNA ALIQUA. UT ENIM AD MINIM VENIAM, QUIS NOSTRUD EXERCITATION ULLAMCO LABORIS NISI UT ALIQUIP EX EA COMMODO CONSEQUAT. DUIS AUTE IRURE DOLOR IN REPREHENDERIT IN VOLUPTATE VELIT ESSE CILLUM DOLORE EU FUGIAT NULLA PARIATUR. EXCEPTEUR SINT OCCAECAT CUPIDATAT NON PROIDENT, SUNT IN CULPA QUI OFFICIA DESERUNT MOLLIT ANIM ID EST LABORUM.";
+uint8_t mode = 0;
 
 int main() {
     
@@ -28,17 +35,33 @@ int main() {
     
     set_flip_mode(1);
     
-    clrgraph(1);
     
     uint f = 0;
     
+    
+    dejong_m::dejong_init();
+    
+    while(1){
+        f += 1;
+        clrgraph(0);
+        dejong_m::dejong_frame();
+        wait_for_vsync();
+        do_flip();
+        
+        if(f % 180 == 0){
+            pattern_variation += 1;
+        }
+    }
+    
+    /*
     while(1){
         f += 1;
         //wait_for_vsync();
-        do_flip();
         bouncing_squares::draw();
+        do_flip();
         gpio_put(0, 0);
     }
+    */
 }
     /*
     while(1){
