@@ -100,6 +100,8 @@ uint16_t _display_size_y = DISP_RES_Y;
 
 constexpr const size_t FRAMEBUF_MEM_SIZE = 192 * DISP_RES_Y;
 uint8_t framebuf[FRAMEBUF_MEM_SIZE * 2] __attribute__((aligned(4)));
+
+
 uint32_t flip_offset = 0;
 uint32_t flip_draw_offset = 0;
 
@@ -111,10 +113,8 @@ uint sm;
 dma_channel_config dc;
 uint8_t current_color = 1;
 
-// いや 2 周してる!!! 式を書くのをめんどくさがった末路
-const int8_t sin4[8] = {0, 2, 0, -2, 0, 2, 0, -2};
 // いや 3 周してる!!!!!!!!! (いちおう、if を減らしたほうが性能上がるんじゃいかな～みたいな淡い期待がある)
-const int8_t sin12[36] = {
+__not_in_flash("") const int8_t sin12[36] = {
      0,  1,  2,
      2,  2,  1,
      0, -1, -2,
@@ -134,7 +134,7 @@ const int8_t sin12[36] = {
 
 // 同期信号用に、一番端に 750Ω を置いているためダルいことなった...
 // 無駄な if の発生を抑制するために、ホンマは 10 段階でいいところを上下それぞれ 3 段階ずつ足す
-const uint8_t amp2out[16] = {
+__not_in_flash("") const uint8_t amp2out[16] = {
     0b0000,
     0b0000,
     0b0000,
@@ -152,7 +152,7 @@ const uint8_t amp2out[16] = {
     0b1111,
     0b1111,
 };
-constexpr const uint8_t AMPINDEX_0IRE = 5;
+#define AMPINDEX_0IRE 5
 
 uint8_t flip = 0;
 void hndirq0(void){
@@ -243,12 +243,18 @@ void hndirq0(void){
             // END LINE_DATA_CONSTRUCT WHEN SCREEN_GRAYSCALE
         }else{
             // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_FULLWIDTH_COLOR
+            uint8_t* framebufptr = &framebuf[flip_draw_offset + lineoffset];
             for(uint_fast16_t i = 0; i < 188; i += 1){
-                const uint_fast8_t pxdat = framebuf[flip_draw_offset + lineoffset + i];
-                const int_fast8_t pxvalue[2] = {(int_fast8_t)((pxdat >> 6) & 0b00000011), (int_fast8_t)(pxdat & 0b00000011)};
+                const uint_fast8_t pxdat = *framebufptr;
+                framebufptr += 1;
+
+                const int_fast8_t pxvalue[2] = {
+                    ((int_fast8_t)((pxdat >> 6) & 0b00000011)),
+                    ((int_fast8_t)( pxdat       & 0b00000011))
+                };
                 const int_fast8_t pxcolorphase =  (pxdat & 0b00111100) >> 2;
                 const uint_fast8_t pxcolorvalue = (pxcolorphase >= 12 ? 0 : 1);
-                
+
                 const uint_fast8_t subpx[4] = {
                     amp2out[(pxvalue[0] << 1) + sin12[(pxcolorphase) + 0] * pxcolorvalue + AMPINDEX_0IRE],
                     amp2out[(pxvalue[0] << 1) + sin12[(pxcolorphase) + 3] * pxcolorvalue + AMPINDEX_0IRE],
