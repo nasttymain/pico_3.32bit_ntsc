@@ -255,6 +255,7 @@ void hndirq0(void){
         }else{
             // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_FULLWIDTH_COLOR
             uint8_t* framebufptr = &framebuf[flip_draw_offset + lineoffset];
+            uint8_t* linebufptr  = &ptr_linebuf[flip][xindex_base];
             for(uint_fast16_t i = 0; i < 188; i += 1){
                 const uint_fast8_t pxdat = *framebufptr;
                 framebufptr += 1;
@@ -272,8 +273,10 @@ void hndirq0(void){
                     amp2out[(pxvalue[1] << 1) + sin12[(pxcolorphase) + 6] * pxcolorvalue + AMPINDEX_0IRE],
                     amp2out[(pxvalue[1] << 1) + sin12[(pxcolorphase) + 9] * pxcolorvalue + AMPINDEX_0IRE]
                 };
-                (ptr_linebuf[flip])[xindex_base + (i << 1) + 0] = (subpx[0] << 4) + (subpx[1]);
-                (ptr_linebuf[flip])[xindex_base + (i << 1) + 1] = (subpx[2] << 4) + (subpx[3]);
+                *linebufptr = (subpx[0] << 4) + (subpx[1]);
+                linebufptr += 1;
+                *linebufptr = (subpx[2] << 4) + (subpx[3]);
+                linebufptr += 1;
             }
             // END LINE_DATA_CONSTRUCT WHEN SCREEN_FULLWIDTH_COLOR
         }
