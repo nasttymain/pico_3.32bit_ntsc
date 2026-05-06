@@ -514,6 +514,7 @@ void setDisplayMode(uint16_t mode){
         
     }
     if(mode == SCREEN_FULLWIDTH_COLOR){
+        // 2048: SCREEN_FULLWIDTH_COLOR。有効色52色。左右2ピクセル単位でクロマ信号を共有する
         if(previous_color_mode == SCREEN_GRAYSCALE){
             _restore_colorburst();
         }

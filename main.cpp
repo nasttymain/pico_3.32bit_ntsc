@@ -14,12 +14,14 @@
 #include "submit/rose/rose.hpp"
 #include "font.hpp"
 #include "title_call.hpp"
+#include "video_util/fps.hpp"
 
 void proc_cin();
 
 int pattern_variation = 0;
 
 uint8_t mode = 0;
+
 
 int main() {
 
@@ -36,12 +38,16 @@ int main() {
     
     
     //dejong_m::dejong_init();
+   
     
     while(1){
         f += 1;
-        clrgraph(0);
+        clrgraph(1);
         bouncing_squares::draw();
-        wait_for_vsync();
+        
+        fps::draw_fps();
+        
+        //wait_for_vsync();
         do_flip();
         
         if(f % 180 == 0){
@@ -98,7 +104,6 @@ int main() {
     }
 }
 */
-
 
 uint8_t n = 0;
 void proc_cin(){

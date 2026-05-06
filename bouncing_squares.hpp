@@ -11,7 +11,6 @@ namespace bouncing_squares{
     uint32_t fc = 0;
     uint8_t initd = 0;
     void draw(){
-        clrgraph(1);
         if(initd == 0){
             for(uint_fast16_t i = 0; i < BOXCOUNT; i += 1){
                 bx[i] = (float)(rand() % 3600) / 10;
