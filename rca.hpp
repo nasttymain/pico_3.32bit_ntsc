@@ -344,6 +344,38 @@ void pset(int16_t xpos, int16_t ypos){
     }
 }
 
+// SCREEN_FULLWIDTH_COLOR でしか使わないこと
+void __fast_hline(int_fast16_t y, int_fast16_t x1, int_fast16_t x2){
+    
+    const int_fast16_t _x1 = (x1 > x2) ? x2 + drawing_x_offset: x1 + drawing_x_offset;
+    const int_fast16_t _x2 = (x1 > x2) ? x1 + drawing_x_offset: x2 + drawing_x_offset;
+   
+    if(y < 0 || y >= _display_size_y){
+        return;
+    }
+    
+    if(_x2 < 0){
+        return;
+    }
+    
+    const int_fast16_t xr1 = _x1 > 0               ? ((_x1 + 1) & (~1)) : 0;
+    const int_fast16_t xr2 = _x2 < _display_size_x ? ((_x2    ) & (~1)) : _display_size_x;
+    const uint8_t cc = current_color + (current_color << 6);
+    const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (xr1 >> 1);
+    uint8_t* fbptr = &framebuf[flip_offset + c];
+    for(int_fast16_t xcnt = xr1; xcnt <= xr2; xcnt += 2){
+        *fbptr = cc;
+        fbptr += 1;
+    }
+    
+    if(xr1 != _x1){
+        pset(_x1 - drawing_x_offset, y);
+    }
+    if(xr2 != _x2){
+        pset(_x2 - drawing_x_offset, y);
+    }
+}
+
 // 有効なのは 0 から 63 まで
 void palcolor(uint8_t palno){
     current_color = palno;
@@ -558,9 +590,19 @@ void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
 }
 
 void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
-    for(int_fast16_t yc = y1; yc < y1 + (y2 - y1 + 1); yc += 1){
-        for(int_fast16_t xc = x1; xc < x1 + (x2 - x1 + 1); xc += 1){
-            pset(xc, yc);
+    const int_fast16_t xr1 = (x1 > 0              ) ? x1 : 0;
+    const int_fast16_t xr2 = (x2 < _display_size_x) ? x2 : _display_size_x;
+    const int_fast16_t yr1 = (y1 > 0              ) ? y1 : 0;
+    const int_fast16_t yr2 = (y2 < _display_size_y) ? y2 : _display_size_y;
+    if(color_mode == SCREEN_FULLWIDTH_COLOR){
+        for(int_fast16_t yc = yr1; yc < yr1 + (yr2 - yr1 + 1); yc += 1){
+            __fast_hline(yc, xr1, xr2);
+        }
+    }else{
+        for(int_fast16_t yc = yr1; yc < yr1 + (yr2 - yr1 + 1); yc += 1){
+            for(int_fast16_t xc = xr1; xc < xr1 + (xr2 - xr1 + 1); xc += 1){
+                pset(xc, yc);
+            }
         }
     }
 }
