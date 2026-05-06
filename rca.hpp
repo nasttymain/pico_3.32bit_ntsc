@@ -265,7 +265,7 @@ void hndirq0(void){
                     ((int_fast8_t)( pxdat       & 0b00000011))
                 };
                 const int_fast8_t pxcolorphase =  (pxdat & 0b00111100) >> 2;
-                const uint_fast8_t pxcolorvalue = (pxcolorphase >= 12 ? 0 : 1);
+                const uint_fast8_t pxcolorvalue = (pxcolorphase < 12);
 
                 const uint_fast8_t subpx[4] = {
                     amp2out[(pxvalue[0] << 1) + sin12[(pxcolorphase) + 0] * pxcolorvalue + AMPINDEX_0IRE],
