@@ -22,10 +22,6 @@ int pattern_variation = 0;
 uint8_t mode = 0;
 
 int main() {
-    
-    gpio_init(0);
-    gpio_set_dir(0, GPIO_OUT);
-    gpio_put(0, 1);
 
     stdio_init_all();
     
@@ -39,12 +35,12 @@ int main() {
     uint f = 0;
     
     
-    dejong_m::dejong_init();
+    //dejong_m::dejong_init();
     
     while(1){
         f += 1;
         clrgraph(0);
-        dejong_m::dejong_frame();
+        bouncing_squares::draw();
         wait_for_vsync();
         do_flip();
         

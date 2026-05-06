@@ -36,6 +36,13 @@ void init_dma();
 void cls(uint8_t cls_mode);
 */
 
+#include "hardware/gpio.h"
+
+#define NASTTY_RCA_DEBUG_OUT
+
+#ifdef NASTTY_RCA_DEBUG_OUT
+    #define NASTTY_RCA_DEBUG_PIN 0
+#endif
 
 #ifndef __NASTTY_RCA_1BIT__
 #define __NASTTY_RCA_1BIT__
@@ -186,6 +193,10 @@ void hndirq0(void){
     dma_channel_set_trans_count(dma_chan, LINEBUF_LEN / sizeof(uint8_t), false);
         
     dma_channel_start(dma_chan);
+
+    #ifdef NASTTY_RCA_DEBUG_OUT
+        gpio_put(NASTTY_RCA_DEBUG_PIN, 1);
+    #endif
     
     flip = (flip + 1) & 1;
     if(lineno > (28 - 1) && lineno <= 20 + 8 + 240){
@@ -272,6 +283,10 @@ void hndirq0(void){
     if(lineno == 0){
         frame += 1;
     }
+    
+    #ifdef NASTTY_RCA_DEBUG_OUT
+        gpio_put(NASTTY_RCA_DEBUG_PIN, 0);
+    #endif
 }
 
 
@@ -502,6 +517,11 @@ void init_dma(){
     dma_channel_set_irq0_enabled(dma_chan, true);
     irq_set_exclusive_handler(DMA_IRQ_0, hndirq0);
     irq_set_enabled(DMA_IRQ_0, true);
+    
+    #ifdef NASTTY_RCA_DEBUG_OUT
+        gpio_init(NASTTY_RCA_DEBUG_PIN);
+        gpio_set_dir(NASTTY_RCA_DEBUG_PIN, GPIO_OUT);
+    #endif
 }
 
 
