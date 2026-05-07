@@ -347,6 +347,34 @@ void pset(int16_t xpos, int16_t ypos){
     }
 }
 
+uint8_t pget(int16_t xpos, int16_t ypos){
+    const int_fast16_t x = xpos + drawing_x_offset;
+    const int_fast16_t y = ypos;
+    if(x < 0 || x >= _display_size_x + drawing_x_offset){
+        current_color = 0;
+    }
+    if(y < 0 || y >= _display_size_y){
+        current_color = 0;
+    }
+    
+    if(color_mode == SCREEN_PALETTE){
+        //未検証
+        const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + x;
+        current_color = (framebuf[flip_offset + c] & 0b00111111);
+    }else{
+        // SCREEN_GRAYSCALE or SCREEN_FULLWIDTH_COLOR
+        const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
+        if((x & 1) == 0){
+            // 0: 左
+            current_color = (framebuf[flip_offset + c] >> 6) + (framebuf[flip_offset + c] & 0b00111100);
+        }else{
+            // 1: 右
+            current_color =  (framebuf[flip_offset + c] & 0b00111111);
+        }
+    }
+    return current_color;
+}
+
 // SCREEN_FULLWIDTH_COLOR でしか使わないこと
 void __fast_hline(int_fast16_t y, int_fast16_t x1, int_fast16_t x2){
     

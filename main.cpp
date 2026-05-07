@@ -43,6 +43,13 @@ int main() {
             }
         }
         
+        uint8_t n = pget(32, 32);
+        char s[10];
+        snprintf(s, 9, "%u", (uint)n);
+        tvvt::pos(0, 10);
+        palcolor(COLOR_BLACK);
+        tvvt::puts(s);
+        
         fps::draw_fps();
         
         //wait_for_vsync();
