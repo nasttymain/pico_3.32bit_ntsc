@@ -28,7 +28,7 @@ namespace fps{
         char s[12];
         snprintf(s, 11, "%4u.%.1u FPS", fps10 / 10, fps10 % 10);
         
-        tvvt::pos(34, 0);
+        tvvt::pos(35, 0);
         palcolor(COLOR_BLACK);
         tvvt::puts(s);
     }

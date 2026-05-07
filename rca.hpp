@@ -314,7 +314,7 @@ void main_program_init(PIO pio, uint sm, uint offset, uint pin) {
 void pset(int16_t xpos, int16_t ypos){
     const int_fast16_t x = xpos + drawing_x_offset;
     const int_fast16_t y = ypos;
-    if(x < 0 || x >= _display_size_x){
+    if(x < 0 || x >= _display_size_x + drawing_x_offset){
         return;
     }
     if(y < 0 || y >= _display_size_y){
@@ -358,8 +358,8 @@ void __fast_hline(int_fast16_t y, int_fast16_t x1, int_fast16_t x2){
         return;
     }
     
-    const int_fast16_t xr1 = _x1 > 0               ? ((_x1 + 1) & (~1)) : 0;
-    const int_fast16_t xr2 = _x2 < _display_size_x ? ((_x2 - 1) & (~1)) : _display_size_x;
+    const int_fast16_t xr1 = _x1 > drawing_x_offset                   ? ((_x1 + 1) & (~1)) : drawing_x_offset;
+    const int_fast16_t xr2 = _x2 < _display_size_x + drawing_x_offset ? ((_x2 - 1) & (~1)) : _display_size_x + drawing_x_offset;
     const uint8_t cc = current_color + (current_color << 6);
     const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (xr1 >> 1);
     uint8_t* fbptr = &framebuf[flip_offset + c];
