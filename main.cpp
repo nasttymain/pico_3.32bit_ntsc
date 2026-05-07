@@ -46,6 +46,12 @@ int main() {
         palcolor(COLOR_GREEN);
         fill(70, 80);
         
+        palcolor(COLOR_BLUE);
+        box(60, 60, 120, 90);
+        
+        pos(240, 120);
+        gcopy(0, 60, 60, 61, 31);
+        
         fps::draw_fps();
         
         //wait_for_vsync();

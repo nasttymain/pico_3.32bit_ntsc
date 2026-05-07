@@ -10,6 +10,8 @@ void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 void lcscolor(uint8_t luma, uint8_t chroma, uint8_t saturation);
 uint8_t pget(int16_t xpos, int16_t ypos);
 void fill(int16_t x, int16_t y);
+void pos(int16_t x, int16_t y);
+void gcopy(uint8_t window_id, int16_t x1, int16_t y1, int16_t xsize, int16_t ysize);
 
 void init_framedata();
 void _remove_colorburst();
@@ -124,6 +126,10 @@ PIO pio = pio0;
 uint sm;
 dma_channel_config dc;
 uint8_t current_color = 1;
+
+
+int16_t ginfo_cx = 0;
+int16_t ginfo_cy = 0;
 
 // いや 3 周してる!!!!!!!!! (いちおう、if を減らしたほうが性能上がるんじゃいかな～みたいな淡い期待がある)
 __not_in_flash("") const int8_t sin12[36] = {
@@ -784,6 +790,25 @@ void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16
         line(xleft, ycnt, xright, ycnt);
     }
     
+}
+
+void pos(int16_t x, int16_t y){
+    ginfo_cx = x;
+    ginfo_cy = y;
+}
+
+void gcopy(uint8_t window_id, int16_t x1, int16_t y1, int16_t xsize, int16_t ysize){
+    const uint8_t cc = current_color;
+    if(x1 >= _display_size_x + drawing_x_offset || y1 >= _display_size_y){
+        return;
+    }
+    for(int_fast16_t ycnt = 0; ycnt < ysize; ycnt += 1){
+        for(int_fast16_t xcnt = 0; xcnt < xsize; xcnt += 1){
+            pget(x1 + xcnt, y1 + ycnt);
+            pset(ginfo_cx + xcnt, ginfo_cy + ycnt);
+        }
+    }
+    current_color = cc;
 }
 
 void set_flip_mode(uint8_t flag){
