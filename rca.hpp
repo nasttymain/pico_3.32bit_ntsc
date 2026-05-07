@@ -7,6 +7,7 @@ void triangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_
 void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
 void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
+void lcscolor(uint8_t luma, uint8_t chroma, uint8_t saturation);
 
 void init_framedata();
 void _remove_colorburst();
@@ -383,6 +384,13 @@ void palcolor(uint8_t palno){
     current_color = palno;
 }
 
+void lcscolor(uint8_t chroma, uint8_t luma, uint8_t saturation){
+    if(saturation == 0){
+        current_color = (0xC << 2) + (luma & 3);
+    }else{
+        current_color = ((chroma % 12) << 2) + (luma & 3);
+    }
+}
 
 // core0 でも init_framedata と init_dma を呼べば動く。USB割り込みで荒れるけど
 void init_framedata(){    

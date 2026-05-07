@@ -34,7 +34,15 @@ int main() {
         f += 1;
         clrgraph(1);
         
-        bouncing_squares::draw();
+        for(uint_fast8_t l = 0; l < 4; l += 1){
+            for(uint_fast8_t c = 0; c < 12; c += 1){
+                lcscolor(c, l, 1);
+                boxf(16 + c * 16, 16 + 32 * l +  0, 32 + c * 16, 16 + 32 * l + 16);
+                lcscolor(c, l, 0);
+                boxf(16 + c * 16, 16 + 32 * l + 16, 32 + c * 16, 16 + 32 * l + 32);
+            }
+        }
+        
         fps::draw_fps();
         
         //wait_for_vsync();
