@@ -8,6 +8,8 @@ void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16
 void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 void lcscolor(uint8_t luma, uint8_t chroma, uint8_t saturation);
+uint8_t pget(int16_t xpos, int16_t ypos);
+void fill(int16_t x, int16_t y);
 
 void init_framedata();
 void _remove_colorburst();
@@ -347,31 +349,39 @@ void pset(int16_t xpos, int16_t ypos){
     }
 }
 
-uint8_t pget(int16_t xpos, int16_t ypos){
+uint8_t __pget(int16_t xpos, int16_t ypos){
     const int_fast16_t x = xpos + drawing_x_offset;
     const int_fast16_t y = ypos;
-    if(x < 0 || x >= _display_size_x + drawing_x_offset){
-        current_color = 0;
-    }
-    if(y < 0 || y >= _display_size_y){
-        current_color = 0;
-    }
-    
+    uint8_t cc;
     if(color_mode == SCREEN_PALETTE){
         //未検証
         const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + x;
-        current_color = (framebuf[flip_offset + c] & 0b00111111);
+        cc = (framebuf[flip_offset + c] & 0b00111111);
     }else{
         // SCREEN_GRAYSCALE or SCREEN_FULLWIDTH_COLOR
         const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
-            current_color = (framebuf[flip_offset + c] >> 6) + (framebuf[flip_offset + c] & 0b00111100);
+            cc = (framebuf[flip_offset + c] >> 6) + (framebuf[flip_offset + c] & 0b00111100);
         }else{
             // 1: 右
-            current_color =  (framebuf[flip_offset + c] & 0b00111111);
+            cc =  (framebuf[flip_offset + c] & 0b00111111);
         }
     }
+    return cc;
+}
+
+uint8_t pget(int16_t xpos, int16_t ypos){
+    if(xpos < 0 || xpos >= _display_size_x){
+        current_color = 0;
+        return 0;
+    }
+    if(ypos < 0 || ypos >= _display_size_y){
+        current_color = 0;
+        return 0;
+    }
+    
+    current_color = __pget(xpos, ypos);
     return current_color;
 }
 
@@ -651,6 +661,60 @@ void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
     line(x2, y1, x2, y2);
     line(x1, y1, x2, y1);
     line(x1, y2, x2, y2);
+}
+
+
+// カスの実装なので閉空間じゃないと(おそらくスタックオーバーフローで)クラッシュするし、遅い
+void fill(int16_t x, int16_t y){
+    if(x < 0 || x >= _display_size_x + drawing_x_offset){
+        return;
+    }
+    if(y < 0 || y >= _display_size_y){
+        return;
+    }
+    if(__pget(x, y) == current_color){
+        return;
+    }
+    const uint8_t target_color = __pget(x, y);
+
+    int_fast16_t lx = x;
+    int_fast16_t rx = x;
+    while(1){
+        if(lx == 0){
+            break;
+        }
+        if(__pget(lx, y) != target_color){
+            lx += 1;
+            break;
+        }
+        lx -= 1;
+    }
+    while(1){
+        if(rx == _display_size_x + drawing_x_offset - 1){
+            break;
+        }
+        if(__pget(rx, y) != target_color){
+            rx -= 1;
+            break;
+        }
+        rx += 1;
+    }
+    __fast_hline(y, lx, rx);
+    
+    if(y >= 1){
+        for(int_fast16_t xcnt = lx; xcnt < rx; xcnt += 1){
+            if(__pget(xcnt, y - 1) == target_color){
+                fill(xcnt, y - 1);
+            }
+        }
+    }
+    if(y <= _display_size_y - 1){
+        for(int_fast16_t xcnt = lx; xcnt < rx; xcnt += 1){
+            if(__pget(xcnt, y + 1) == target_color){
+                fill(xcnt, y + 1);
+            }
+        }
+    }
 }
 
 // ま、正確には待ってる対象は vblank なんだけどね

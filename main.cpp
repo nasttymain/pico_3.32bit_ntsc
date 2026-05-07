@@ -23,6 +23,9 @@ int pattern_variation = 0;
 uint8_t mode = 0;
 
 
+int16_t xp[7] = {60, 90, 140, 70, 210, 90, 30};
+int16_t yp[7] = {20, 90, 80, 25, 100, 140, 95};
+
 int main() {
     stdio_init_all();
     
@@ -34,21 +37,14 @@ int main() {
         f += 1;
         clrgraph(1);
         
-        for(uint_fast8_t l = 0; l < 4; l += 1){
-            for(uint_fast8_t c = 0; c < 12; c += 1){
-                lcscolor(c, l, 1);
-                boxf(16 + c * 16, 16 + 32 * l +  0, 32 + c * 16, 16 + 32 * l + 16);
-                lcscolor(c, l, 0);
-                boxf(16 + c * 16, 16 + 32 * l + 16, 32 + c * 16, 16 + 32 * l + 32);
-            }
+        palcolor(COLOR_BLACK);
+        int ps = 7;
+        for(uint_fast8_t i = 0; i < ps; i += 1){
+            line(xp[i], yp[i], xp[(i + 1) % ps], yp[(i + 1) % ps]);
         }
         
-        uint8_t n = pget(32, 32);
-        char s[10];
-        snprintf(s, 9, "%u", (uint)n);
-        tvvt::pos(0, 10);
-        palcolor(COLOR_BLACK);
-        tvvt::puts(s);
+        palcolor(COLOR_GREEN);
+        fill(70, 80);
         
         fps::draw_fps();
         
