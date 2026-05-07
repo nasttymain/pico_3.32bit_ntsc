@@ -24,27 +24,17 @@ uint8_t mode = 0;
 
 
 int main() {
-
     stdio_init_all();
     
     init_video_on_core1();
-    
     setDisplayMode(SCREEN_FULLWIDTH_COLOR);
-    
     set_flip_mode(1);
-    
-    
     uint f = 0;
-    
-    
-    //dejong_m::dejong_init();
-   
-    
     while(1){
         f += 1;
         clrgraph(1);
-        bouncing_squares::draw();
         
+        bouncing_squares::draw();
         fps::draw_fps();
         
         //wait_for_vsync();
@@ -54,56 +44,7 @@ int main() {
             pattern_variation += 1;
         }
     }
-    
-    /*
-    while(1){
-        f += 1;
-        //wait_for_vsync();
-        bouncing_squares::draw();
-        do_flip();
-        gpio_put(0, 0);
-    }
-    */
 }
-    /*
-    while(1){
-        // BEGIN MODE_CHANGE
-        if(f % 300 == 0){
-            mode = (mode + 1) % 3;
-            if(mode % 3 == 0){
-            }
-            if(mode % 3 == 1){
-            }
-            if(mode % 3 == 2){
-                color_palette::draw();
-                gpio_put(0, 0);
-            }
-        }
-        // END MODE_CHANGE
-        if(mode % 3 == 0){
-            clrgraph(1);
-            boxf(20, 20, 50, 30);
-            palcolor(0);
-            tvvt::pos(0, 0);
-            tvvt::puts("Hello, World!");
-            swimming_triangle::frame();
-        }
-        if(mode % 3 == 1){
-            if(f % 60 == 1){
-                clrgraph(1);
-                palcolor(f / 60 % 64);
-                tvvt::pos(0, 0);
-                tvvt::puts(lorem);
-            }            
-        }
-        if(mode % 3 == 2){
-            
-        }
-        wait_for_vsync();
-        f += 1;
-    }
-}
-*/
 
 uint8_t n = 0;
 void proc_cin(){
