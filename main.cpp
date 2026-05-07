@@ -41,11 +41,6 @@ int main() {
         do_flip();
         
         if(f % 180 == 0){
-            if(f / 180 % 2 == 1){
-                setDisplayMode(SCREEN_GRAYSCALE);
-            }else{
-                setDisplayMode(SCREEN_FULLWIDTH_COLOR);
-            }
             pattern_variation += 1;
         }
     }

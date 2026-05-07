@@ -13,6 +13,7 @@ void _remove_colorburst();
 void _restore_colorburst();
 void setDisplayMode(uint16_t mode);
 void init_dma();
+void vsync_mode(uint8_t mode);
 
 #define SCREEN_PALETTE 2
 #define SCREEN_GRAYSCALE 1024
@@ -92,6 +93,7 @@ uint8_t linebuf_b[LINEBUF_LEN] __attribute__((aligned(4)));
 uint8_t* ptr_linebuf[2] = {linebuf_a, linebuf_b};
 uint8_t linebuf_vblank[LINEBUF_LEN] __attribute__((aligned(4)));
 uint8_t linebuf_vsync[LINEBUF_LEN] __attribute__((aligned(4)));
+uint8_t* ptr_linebuf_vsync = &linebuf_vsync[0];
 
 #define VIEWPORT_RES_X 360
 #define VIEWPORT_RES_Y 240
@@ -178,7 +180,7 @@ void hndirq0(void){
         dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
     }else if(lineno <= 6){
         //   3 Vsync
-        dma_channel_set_read_addr(dma_chan, linebuf_vsync, false);
+        dma_channel_set_read_addr(dma_chan, ptr_linebuf_vsync, false);
     }else if(lineno <= 20 + 8){
         //  14 After Porch + 8 no video
         dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
@@ -707,6 +709,16 @@ void do_flip(){
     }else{
         flip_offset = FRAMEBUF_MEM_SIZE;
         flip_draw_offset = 0;
+    }
+}
+
+// vsync を送出しない場合は 1 にする
+void vsync_mode(uint8_t mode){
+    if(mode == 0){
+        ptr_linebuf_vsync = &linebuf_vsync[0];
+    }
+    if(mode == 1){
+        ptr_linebuf_vsync = &linebuf_vblank[0];
     }
 }
 
