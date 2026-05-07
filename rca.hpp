@@ -811,6 +811,60 @@ void gcopy(uint8_t window_id, int16_t x1, int16_t y1, int16_t xsize, int16_t ysi
     current_color = cc;
 }
 
+void circle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t fill_mode){
+    // そうだ! 全部「2 倍」で扱おう
+    const int_fast16_t xbase = (x1 + x2);
+    const int_fast16_t ybase = (y1 + y2);
+    const int_fast16_t a = (int_fast16_t)abs(x2 - x1);
+    const int_fast16_t b = (int_fast16_t)abs(y2 - y1);
+    const int_fast16_t asq = a * a;
+    const int_fast16_t bsq = b * b;
+    
+    int_fast16_t oldx = 0;
+    
+    if(fill_mode == 1){
+        // 塗りつぶし
+        for(int_fast16_t ycnt = - b; ycnt <= 0; ycnt += 1){
+            if((ycnt % 2) != 0){
+                continue;
+            }
+            // 2 の倍数ってことはスクリーン座標的に整数
+            // 注意: xc は 2 倍になってない
+            const int xc = (asq - ((int)ycnt * ycnt * asq / bsq));
+            // たぶんテーブルにするより double の計算したほうが速い
+            const int_fast16_t newx = (int)sqrt(xc);
+            const int_fast16_t newy = (int)ycnt;
+            
+            __fast_hline((ybase - newy) / 2, (xbase - newx) / 2, (xbase + newx) / 2);
+            __fast_hline((ybase + newy) / 2, (xbase - newx) / 2, (xbase + newx) / 2);
+            oldx = newx;
+        }
+        
+    }
+    
+    if(fill_mode == 0){
+        // 輪郭
+        for(int_fast16_t ycnt = - b; ycnt <= 0; ycnt += 1){
+            if((ycnt % 2) != 0){
+                continue;
+            }
+            // 2 の倍数ってことはスクリーン座標的に整数
+            // 注意: xc は 2 倍になってない
+            const int xc = (asq - ((int)ycnt * ycnt * asq / bsq));
+            // たぶんテーブルにするより double の計算したほうが速い
+            const int_fast16_t newx = (int)sqrt(xc);
+            const int_fast16_t newy = (int)ycnt;
+            
+            // fast_hline より line のほうが速く、意味不明
+            line((xbase - newx) / 2, (ybase - newy) / 2, (xbase - oldx) / 2, (ybase - newy) / 2);
+            line((xbase + newx) / 2, (ybase - newy) / 2, (xbase + oldx) / 2, (ybase - newy) / 2);
+            line((xbase - newx) / 2, (ybase + newy) / 2, (xbase - oldx) / 2, (ybase + newy) / 2);
+            line((xbase + newx) / 2, (ybase + newy) / 2, (xbase + oldx) / 2, (ybase + newy) / 2);
+            oldx = newx;
+        }
+    }
+}
+
 void set_flip_mode(uint8_t flag){
     flip_mode = (flag != 0) ? 1 : 0;
     if(flip_mode == 0){

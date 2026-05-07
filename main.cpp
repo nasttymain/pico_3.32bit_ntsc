@@ -40,18 +40,12 @@ int main() {
         palcolor(COLOR_BLACK);
         int ps = 7;
         for(uint_fast8_t i = 0; i < ps; i += 1){
-            line(xp[i], yp[i], xp[(i + 1) % ps], yp[(i + 1) % ps]);
-        }
-        
-        palcolor(COLOR_GREEN);
-        fill(70, 80);
-        
-        palcolor(COLOR_BLUE);
-        box(60, 60, 120, 90);
-        
-        pos(240, 120);
-        gcopy(0, 60, 60, 61, 31);
-        
+            lcscolor(i, 2, 1);
+            circle(xp[i], yp[i], xp[(i + 1) % ps], yp[(i + 1) % ps], 1);
+            lcscolor(i, 0, 0);
+            circle(xp[i], yp[i], xp[(i + 1) % ps], yp[(i + 1) % ps], 0);
+            box(xp[i], yp[i], xp[(i + 1) % ps], yp[(i + 1) % ps]);
+        }        
         fps::draw_fps();
         
         //wait_for_vsync();
