@@ -595,7 +595,7 @@ void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
     const int_fast16_t xr2 = (x2 < _display_size_x) ? x2 : _display_size_x;
     const int_fast16_t yr1 = (y1 > 0              ) ? y1 : 0;
     const int_fast16_t yr2 = (y2 < _display_size_y) ? y2 : _display_size_y;
-    if(color_mode == SCREEN_FULLWIDTH_COLOR){
+    if(color_mode == SCREEN_FULLWIDTH_COLOR || color_mode == SCREEN_GRAYSCALE){
         for(int_fast16_t yc = yr1; yc < yr1 + (yr2 - yr1 + 1); yc += 1){
             __fast_hline(yc, xr1, xr2);
         }
