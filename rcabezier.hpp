@@ -1,4 +1,3 @@
-
 #include "rca.hpp"
 
 #ifndef __NASTTY_RCA_BEZIER__
@@ -40,7 +39,7 @@ namespace tvbezier{
         bezier(target.x1, target.y1, target.xc, target.yc, target.x2, target.y2, lines);
     }
     
-    void get_divided_bezier(bezier_t& target, bezier_t& result, float t){
+    void get_divided_bezier(bezier_t& __restrict  target, bezier_t& __restrict result, float t){
         const int16_t xnewc = target.x1 + t * (target.xc - target.x1);
         const int16_t ynewc = target.y1 + t * (target.yc - target.y1);
         const int16_t x = (int16_t)(t * t * (target.x1 - 2 * target.xc + target.x2) + t * (-2 * target.x1 + 2 * target.xc) + target.x1);
@@ -54,7 +53,7 @@ namespace tvbezier{
         result.y2 = y;
     }
 
-    void get_divided_bezier_r(bezier_t& target, bezier_t& result, float t){
+    void get_divided_bezier_r(bezier_t& __restrict target, bezier_t& __restrict result, float t){
         bezier_t b;
         b.x1 = target.x2;
         b.xc = target.xc;
