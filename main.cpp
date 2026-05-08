@@ -4,16 +4,11 @@
 #include "rca.hpp"
 #include "rcavt.hpp"
 #include "pico/time.h"
-#include "swimming_triangle.hpp"
-#include "color_palette.hpp"
-#include "bouncing_squares.hpp"
 
 #include "submit/lineart/lineart.cpp"
 #include "submit/lineart/multilineart.hpp"
 #include "submit/dejong/dejong2.hpp"
 #include "submit/rose/rose.hpp"
-#include "font.hpp"
-#include "title_call.hpp"
 #include "video_util/fps.hpp"
 
 void proc_cin();
@@ -48,12 +43,13 @@ int main() {
         }        
         fps::draw_fps();
         
-        //wait_for_vsync();
+        wait_for_vsync();
         do_flip();
         
         if(f % 180 == 0){
             pattern_variation += 1;
         }
+        
     }
 }
 
