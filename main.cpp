@@ -3,13 +3,12 @@
 #include <stdio.h>
 #include "rca.hpp"
 #include "rcavt.hpp"
+#include "rcabezier.hpp"
 #include "pico/time.h"
 
-#include "submit/lineart/lineart.cpp"
-#include "submit/lineart/multilineart.hpp"
-#include "submit/dejong/dejong2.hpp"
-#include "submit/rose/rose.hpp"
 #include "video_util/fps.hpp"
+
+#include "example_or_test/bezierテスト.hpp"
 
 void proc_cin();
 
@@ -18,10 +17,9 @@ int pattern_variation = 0;
 uint8_t mode = 0;
 
 
-int16_t xp[7] = {60, 90, 140, 70, 210, 90, 30};
-int16_t yp[7] = {20, 90, 80, 25, 100, 140, 95};
 
 int main() {
+    
     stdio_init_all();
     
     init_video_on_core1();
@@ -33,17 +31,12 @@ int main() {
         clrgraph(1);
         
         palcolor(COLOR_BLACK);
-        int ps = 7;
-        for(uint_fast8_t i = 0; i < ps; i += 1){
-            lcscolor(i, 2, 1);
-            circle(xp[i], yp[i], xp[(i + 1) % ps], yp[(i + 1) % ps], 1);
-            lcscolor(i, 0, 0);
-            circle(xp[i], yp[i], xp[(i + 1) % ps], yp[(i + 1) % ps], 0);
-            box(xp[i], yp[i], xp[(i + 1) % ps], yp[(i + 1) % ps]);
-        }        
+        
+        test_bezier::frame();
+        
         fps::draw_fps();
         
-        wait_for_vsync();
+        //wait_for_vsync();
         do_flip();
         
         if(f % 180 == 0){
