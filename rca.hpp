@@ -915,6 +915,7 @@ void core1_main(){
 // core1 で映像を駆動したい場合はこれ「のみを」呼ぶ
 void init_video_on_core1(){
     sleep_ms(50);
+    multicore_reset_core1();
     multicore_launch_core1(core1_main);
     while(is_core1_initialized == 0){}
 }
