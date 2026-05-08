@@ -101,13 +101,13 @@ uint8_t linebuf_vsync[LINEBUF_LEN] __attribute__((aligned(4)));
 uint8_t* ptr_linebuf_vsync = &linebuf_vsync[0];
 
 #define VIEWPORT_RES_X 360
-#define VIEWPORT_RES_Y 240
+#define VIEWPORT_RES_Y 232
 
 
-// X 方向に 189 pixel。縦は 224 ラインを使う
+// X 方向に 360 pixel。縦は 232 ラインを使う
 constexpr const uint16_t DISP_RES_X = (LEN_ACTIVE_VIDEO) / 4;
 constexpr const uint16_t DISP_RES_X_GRAYSCALE = LEN_ACTIVE_VIDEO / 2;
-constexpr const uint16_t DISP_RES_Y = 240;
+constexpr const uint16_t DISP_RES_Y = VIEWPORT_RES_Y;
 
 uint16_t _display_size_x = 180;
 uint16_t _display_size_y = DISP_RES_Y;
@@ -181,9 +181,7 @@ void hndirq0(void){
     //   3 Before Porch 
     //   3 Vsync
     //  14 After Porch
-    // 240 Video
-    //   2 inactive video
-    
+    // 242 Video (front 8 + back 2 lines are inactive)
     if(lineno <= 3){
         //   3 Before Porch
         dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
@@ -193,11 +191,11 @@ void hndirq0(void){
     }else if(lineno <= 20 + 8){
         //  14 After Porch + 8 no video
         dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
-    }else if(lineno <= 20 + 8 + 240){
-        // 240 Video
+    }else if(lineno <= 20 + 8 + 240 - 8){
+        // 232 Video
         dma_channel_set_read_addr(dma_chan, ptr_linebuf[flip], false);
     }else{
-        // 10 after video
+        //  2 after video
         dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
     }
     
@@ -210,7 +208,7 @@ void hndirq0(void){
     #endif
     
     flip = (flip + 1) & 1;
-    if(lineno > (28 - 1) && lineno <= 20 + 8 + 240){
+    if(lineno > (28 - 1) && lineno <= 20 + 8 + 240 - 8){
         // 次の flip に対して書込処理を行う
         constexpr const uint_fast16_t xindex_base = 79;
         const uint_fast16_t linenum = (lineno - 28);

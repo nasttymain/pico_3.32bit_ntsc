@@ -30,7 +30,7 @@ namespace bouncing_squares{
             if(bx[i] > 360.0 - 24 && bxs[i] > 0.0){
                 bxs[i] = -bxs[i];
             }
-            if(by[i] > 240.0 - 24 && bys[i] > 0.0){
+            if(by[i] > 232.0 - 24 && bys[i] > 0.0){
                 bys[i] = -bys[i];
             }
         }
