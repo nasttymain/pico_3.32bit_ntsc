@@ -901,11 +901,9 @@ void vsync_mode(uint8_t mode){
     }
 }
 
-uint8_t is_core1_initialized = 0;
+volatile uint8_t is_core1_initialized = 0;
 void core1_main(){
-    sleep_ms(10);
     bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_R_BITS | BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_PROC1_BITS;
-    sleep_ms(10);
     init_framedata();
     init_dma();
     is_core1_initialized = 1;
@@ -916,9 +914,8 @@ void core1_main(){
 
 // core1 で映像を駆動したい場合はこれ「のみを」呼ぶ
 void init_video_on_core1(){
-    sleep_ms(100);
+    sleep_ms(50);
     multicore_launch_core1(core1_main);
-    sleep_ms(100);
     while(is_core1_initialized == 0){}
 }
 
