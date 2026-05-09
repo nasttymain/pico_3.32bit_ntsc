@@ -3,20 +3,19 @@
 #include <stdio.h>
 #include "rca.hpp"
 #include "rcavt.hpp"
+#include "rcadimz.hpp"
 #include "rcabezier.hpp"
 #include "pico/time.h"
 
 #include "video_util/fps.hpp"
 
-#include "example_or_test/bezierテスト.hpp"
+#include "example_or_test/test_model.hpp"
 
 void proc_cin();
 
 int pattern_variation = 0;
 
 uint8_t mode = 0;
-
-
 
 int main() {
     
@@ -26,14 +25,17 @@ int main() {
     setDisplayMode(SCREEN_FULLWIDTH_COLOR);
     set_flip_mode(1);
     uint f = 0;
+    
+    
     while(1){
         f += 1;
-        clrgraph(1);
+        clrgraph(0);
         
-        palcolor(COLOR_BLACK);
+        palcolor(COLOR_WHITE);
         
-        test_bezier::frame();
-        
+        test_model::frame();
+                
+        palcolor(COLOR_WHITE);
         fps::draw_fps();
         
         //wait_for_vsync();
