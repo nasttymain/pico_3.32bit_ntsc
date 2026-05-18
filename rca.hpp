@@ -173,35 +173,12 @@ __not_in_flash("") const uint8_t amp2out[16] = {
 #define AMPINDEX_0IRE 5
 
 uint8_t flip = 0;
+volatile uint8_t* ptr_next_dma_buf = linebuf_vblank;
 void hndirq0(void){
     
     dma_hw->ints0 = 1u << dma_chan;
     dma_channel_abort(dma_chan);
-    
-    //   3 Before Porch 
-    //   3 Vsync
-    //  14 After Porch
-    // 242 Video (front 8 + back 2 lines are inactive)
-    if(lineno <= 3){
-        //   3 Before Porch
-        dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
-    }else if(lineno <= 6){
-        //   3 Vsync
-        dma_channel_set_read_addr(dma_chan, ptr_linebuf_vsync, false);
-    }else if(lineno <= 20 + 8){
-        //  14 After Porch + 8 no video
-        dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
-    }else if(lineno <= 20 + 8 + 240 - 8){
-        // 232 Video
-        dma_channel_set_read_addr(dma_chan, ptr_linebuf[flip], false);
-    }else{
-        //  2 after video
-        dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
-    }
-    
-    dma_channel_set_trans_count(dma_chan, LINEBUF_LEN / sizeof(uint8_t), false);
-        
-    dma_channel_start(dma_chan);
+    dma_channel_set_read_addr(dma_chan, ptr_next_dma_buf, true);
 
     #ifdef NASTTY_RCA_DEBUG_OUT
         gpio_put(NASTTY_RCA_DEBUG_PIN, 1);
@@ -295,6 +272,31 @@ void hndirq0(void){
     if(lineno == 0){
         frame += 1;
     }
+    //   3 Before Porch 
+    //   3 Vsync
+    //  14 After Porch
+    // 242 Video (front 8 + back 2 lines are inactive)
+    if(lineno <= 3){
+        //   3 Before Porch
+        ptr_next_dma_buf = linebuf_vblank;
+        //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
+    }else if(lineno <= 6){
+        //   3 Vsync
+        ptr_next_dma_buf = ptr_linebuf_vsync;
+        //dma_channel_set_read_addr(dma_chan, ptr_linebuf_vsync, false);
+    }else if(lineno <= 20 + 8){
+        //  14 After Porch + 8 no video
+        ptr_next_dma_buf =linebuf_vblank;
+        //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
+    }else if(lineno <= 20 + 8 + 240 - 8){
+        // 232 Video
+        ptr_next_dma_buf = ptr_linebuf[flip];
+        //dma_channel_set_read_addr(dma_chan, ptr_linebuf[flip], false);
+    }else{
+        //  2 after video
+        ptr_next_dma_buf =linebuf_vblank;
+        //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
+    }
     
     #ifdef NASTTY_RCA_DEBUG_OUT
         gpio_put(NASTTY_RCA_DEBUG_PIN, 0);
@@ -311,6 +313,8 @@ void main_program_init(PIO pio, uint sm, uint offset, uint pin) {
     
     // Start building PIO config
     pio_sm_config c = main_program_get_default_config(offset);
+    
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
     
     // NOTE: You have to config out and set pins separately, or they just won't write anything
     sm_config_set_out_pins(&c, pin, ROW_PINS);
@@ -594,6 +598,7 @@ void init_dma(){
     channel_config_set_dreq(&dc, pio_get_dreq(pio, sm, true));
     channel_config_set_read_increment(&dc, true);
     channel_config_set_write_increment(&dc, false);
+    channel_config_set_high_priority(&dc, true);
     dma_channel_configure(
         dma_chan,
         &dc,
@@ -604,6 +609,7 @@ void init_dma(){
     );
     dma_channel_set_irq0_enabled(dma_chan, true);
     irq_set_exclusive_handler(DMA_IRQ_0, hndirq0);
+    irq_set_priority(DMA_IRQ_0, 0x00);
     irq_set_enabled(DMA_IRQ_0, true);
     
     #ifdef NASTTY_RCA_DEBUG_OUT
