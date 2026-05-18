@@ -31,9 +31,7 @@ int main() {
     set_flip_mode(1);
     uint f = 0;
     
-    picopico::init();
-    picoaout::init();
-    picopicomidi::init();
+    picopico_all_init();
     FILE* fsmf = fmemopen((void*)smf, sizeof(smf), "rb");
     picopicomidi::load_from_file(fsmf);
     
@@ -60,10 +58,11 @@ int main() {
             tvvt::puts(s);
         }
 
-        //wait_for_vsync();
+        wait_for_vsync();
         do_flip();
         
-        if(f == 120){
+        if(frame == 120){
+            __dump_smsdat(&picopicomidi::smf_data);
             picopicomidi::is_playing = 1;
         }
         

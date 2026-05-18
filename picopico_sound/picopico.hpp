@@ -171,9 +171,21 @@ namespace picopico{
         3910465,
         4142993
     };
+    
+    // bend: -32 ～ 32
     inline uint32_t tone2step(uint8_t t, int32_t bend){
-        const uint oct = t / 12;
-        return thtable[(t % 12)] >> (8 - oct);
+        if(bend == 0){
+            const uint oct = t / 12;
+            return thtable[(t % 12)] >> (8 - oct);
+        }
+        const uint td = (bend > 0) ? t : t - 1;
+        const uint tu = (bend > 0) ? t + 1 : t;
+        const uint bp = (bend > 0) ? bend : (32 + bend);
+        const uint octd = td / 12;
+        const uint octu = tu / 12;
+        const uint d = thtable[(td % 12)] >> (8 - octd);
+        const uint u = thtable[(tu % 12)] >> (8 - octu);
+        return (d * (32 - bp) + u * bp) / 32;
     }
     void toneon(uint8_t channel, uint8_t tone_height, int32_t pitch_bend){
         ss_phase_step[channel] = tone2step(tone_height, pitch_bend);
@@ -305,8 +317,9 @@ namespace picoaout{
     namespace picopicomidi{
         smsdat_t smf_data;
         volatile smmsg_t  msg;
-        constexpr const uint8_t CH_COUNT = 8;
+        constexpr const uint8_t CH_COUNT = 6;
         uint8_t last_th[CH_COUNT];
+        int8_t last_bend[CH_COUNT];
         
         // 120BPM、96Delta/Beat
         uint8_t stamp256_by_irq = 96 * 120 * 256 / 30000;
@@ -327,6 +340,9 @@ namespace picoaout{
             currentstamp256 += stamp256_by_irq;
             while(1){
                 if(smf_data.reached_end == 1){
+                    for(uint i = 0; i < CH_COUNT; i += 1){
+                        picopico::toneoff(i);
+                    }
                     break;
                 }
                 if((currentstamp256 / 256) >= smf_last_timestamp + msg.delta){
@@ -337,13 +353,18 @@ namespace picoaout{
                     if(st == 0x90 && msg.param2 != 0){
                         // ノートオン
                         picopico::set_channel_volume(ch, (msg.param2 / 43));
-                        picopico::toneon(ch, msg.param1 - 12, 0);
-                        last_th[ch] = msg.param1;
+                        last_th[ch] = msg.param1 - 12;
+                        picopico::toneon(ch, last_th[ch], last_bend[ch]);
                     }else if(st == 0x80 || (st == 0x90 && msg.param2 == 0)){
-                        if(last_th[ch] == msg.param1){
+                        if(last_th[ch] == msg.param1 - 12){
                             // ノートオフ
                             picopico::toneoff(ch);
                             last_th[ch] = 128;
+                        }
+                    }else if(st == 0xE0){
+                        if(last_th[ch] != 128){
+                            last_bend[ch] = (msg.param2 >> 1) - 32;
+                            picopico::toneon(ch, last_th[ch], last_bend[ch]);
                         }
                     }else if(msg.status == 0xFF){
                         // メタ
@@ -374,6 +395,7 @@ namespace picoaout{
                 smf_last_timestamp = 0;
                 for(uint i = 0; i < CH_COUNT; i += 1){
                     last_th[i] = 128;
+                    last_bend[i] = 0;
                 }
                 is_playing = 0;
                 return 1;
@@ -383,5 +405,13 @@ namespace picoaout{
         }
     }
 #endif
+
+void picopico_all_init(){
+    picopico::init();
+    picoaout::init();
+    #ifndef PICOPICO_NO_MIDI
+        picopicomidi::init();
+    #endif
+}
 
 #endif
