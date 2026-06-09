@@ -1,7 +1,7 @@
 #include "rca.hpp"
 
-#ifndef __NASTTY_RCA_BEZIER__
-#define __NASTTY_RCA_BEZIER__
+#ifndef __NASTTY_RCA_DIMZ__
+#define __NASTTY_RCA_DIMZ__
 
 #include <cstdint>
 #include <cmath>
