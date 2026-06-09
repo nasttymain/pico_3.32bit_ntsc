@@ -31,6 +31,7 @@ int main() {
     picopico_all_init();
 
     sprite_ei.pattern = test_ei;
+    sprite_ei.palette[0] = COLOR_TRANSPARENT;
     sprite_ei.palette[1] = COLOR_BLACK;
     sprite_ei.palette[2] = COLOR_WHITE;
     sprite_ei.palette[3] = COLOR_LIGHTGRAY;

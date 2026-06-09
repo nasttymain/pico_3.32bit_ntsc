@@ -1,5 +1,9 @@
 #include "rca.hpp"
 
+#ifndef COLOR_TRANSPARENT
+#define COLOR_TRANSPARENT 63
+#endif
+
 #ifndef __NASTTY_RCA_SPRITE__
 #define __NASTTY_RCA_SPRITE__
 
