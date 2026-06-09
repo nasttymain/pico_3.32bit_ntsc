@@ -12,7 +12,9 @@
 
 #include "video_util/fps.hpp"
 
-#include "example_or_test/test_model.hpp"
+#include "example_or_test/lazycon_stub.hpp"
+
+#include "example_or_test/test_model_2.hpp"
 
 void proc_cin();
 
@@ -35,9 +37,12 @@ int main() {
     FILE* fsmf = fmemopen((void*)smf, sizeof(smf), "rb");
     picopicomidi::load_from_file(fsmf);
     
+    lazycon::init();
+    
     while(1){
         f += 1;
         
+        lazycon::getkeys();
         
         clrgraph(0);
         
@@ -60,6 +65,7 @@ int main() {
 
         wait_for_vsync();
         do_flip();
+        
         
         if(frame == 120){
             __dump_smsdat(&picopicomidi::smf_data);
