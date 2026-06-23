@@ -73,7 +73,7 @@ void cls(uint8_t cls_mode);
 // .program main
 //     pull
 //     out pins, 4
-int dma_chan;
+int dma_chan[2];
 
 // タイミング一覧
 constexpr const uint16_t LEN_FRONT_PORCH            = 21;
@@ -176,15 +176,16 @@ uint8_t flip = 0;
 volatile uint8_t* ptr_next_dma_buf = linebuf_vblank;
 void hndirq0(void){
     
-    dma_hw->ints0 = 1u << dma_chan;
-    dma_channel_abort(dma_chan);
-    dma_channel_set_read_addr(dma_chan, ptr_next_dma_buf, true);
+    dma_hw->ints0 = 1u << dma_chan[flip];
+    dma_channel_abort(dma_chan[flip]);
 
     #ifdef NASTTY_RCA_DEBUG_OUT
         gpio_put(NASTTY_RCA_DEBUG_PIN, 1);
     #endif
     
+    const auto prev_flip = flip; 
     flip = (flip + 1) & 1;
+           
     if(lineno > (28 - 1) && lineno <= 20 + 8 + 240 - 8){
         // 次の flip に対して書込処理を行う
         constexpr const uint_fast16_t xindex_base = 79;
@@ -269,6 +270,7 @@ void hndirq0(void){
     }
     
     lineno = (lineno + 1) % 262;
+    // BEGIN Next DMA Settings
     if(lineno == 0){
         frame += 1;
     }
@@ -297,6 +299,9 @@ void hndirq0(void){
         ptr_next_dma_buf =linebuf_vblank;
         //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
     }
+    
+    dma_channel_set_read_addr(dma_chan[prev_flip], ptr_next_dma_buf, false);
+    // END-- Next DMA Settings
     
     #ifdef NASTTY_RCA_DEBUG_OUT
         gpio_put(NASTTY_RCA_DEBUG_PIN, 0);
@@ -592,25 +597,51 @@ void init_dma(){
     pio_sm_set_enabled(pio, sm, true);
     
     // DMA の設定
-    dma_chan = dma_claim_unused_channel(true);
-    dc = dma_channel_get_default_config(dma_chan);
+    for(uint i = 0; i < 2; i += 1){
+        dma_chan[i] = dma_claim_unused_channel(true);
+    }
+    
+    // for channel normal
+    dc = dma_channel_get_default_config(dma_chan[0]);
     channel_config_set_transfer_data_size(&dc, DMA_SIZE_8);
     channel_config_set_dreq(&dc, pio_get_dreq(pio, sm, true));
     channel_config_set_read_increment(&dc, true);
     channel_config_set_write_increment(&dc, false);
     channel_config_set_high_priority(&dc, true);
+    channel_config_set_chain_to(&dc, dma_chan[1]);
     dma_channel_configure(
-        dma_chan,
+        dma_chan[0],
         &dc,
         &pio->txf[sm],
         linebuf_a,
         LINEBUF_LEN,
-        true
+        false
     );
-    dma_channel_set_irq0_enabled(dma_chan, true);
+    dma_channel_set_irq0_enabled(dma_chan[0], true);
+    
+    // for channel flip
+    dc = dma_channel_get_default_config(dma_chan[1]);
+    channel_config_set_transfer_data_size(&dc, DMA_SIZE_8);
+    channel_config_set_dreq(&dc, pio_get_dreq(pio, sm, true));
+    channel_config_set_read_increment(&dc, true);
+    channel_config_set_write_increment(&dc, false);
+    channel_config_set_high_priority(&dc, true);
+    channel_config_set_chain_to(&dc, dma_chan[0]);
+    dma_channel_configure(
+        dma_chan[1],
+        &dc,
+        &pio->txf[sm],
+        linebuf_a,
+        LINEBUF_LEN,
+        false
+    );
+    dma_channel_set_irq0_enabled(dma_chan[1], true);
+    
     irq_set_exclusive_handler(DMA_IRQ_0, hndirq0);
+    
     irq_set_priority(DMA_IRQ_0, 0x00);
     irq_set_enabled(DMA_IRQ_0, true);
+    dma_channel_start(dma_chan[0]);
     
     #ifdef NASTTY_RCA_DEBUG_OUT
         gpio_init(NASTTY_RCA_DEBUG_PIN);

@@ -51,7 +51,7 @@ int main() {
         
         fps::draw_fps();
         
-        wait_for_vsync();
+        //wait_for_vsync();
         do_flip();
         
         
