@@ -166,6 +166,7 @@ namespace tvvt{
     }
 
     void pos(int8_t x, int8_t y){
+        CCOLUMNS = _display_size_x / 8;
         cpos = x + y * CCOLUMNS;
         return;
     }
