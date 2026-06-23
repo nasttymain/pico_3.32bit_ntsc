@@ -937,13 +937,20 @@ void vsync_mode(uint8_t mode){
 }
 
 volatile uint8_t is_core1_initialized = 0;
+
+typedef void (* fptr_void_void_t)(void);
+volatile fptr_void_void_t core1_loop = nullptr;
+
 void core1_main(){
     bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_R_BITS | BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_PROC1_BITS;
     init_framedata();
     init_dma();
     is_core1_initialized = 1;
     while(1){
-        asm("wfi");
+        if(core1_loop != nullptr){
+            (*core1_loop)();
+        }
+        //asm("wfi");
     }
 }
 
