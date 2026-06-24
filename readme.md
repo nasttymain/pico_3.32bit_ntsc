@@ -3,6 +3,12 @@
 ![color bars](docs/colorbars.png)
 ![lorem ipsum in monochrome mode](docs/monochrome_mode_lorem.png)
 
+## About Resistor DAC
+* 750Ω to GP16
+* 1500Ω (= 2 series of 750Ω) to GP17
+* 750Ω to GP18
+* 375Ω to GP19
+
 
 ## Difference Between precise NTSC standard
 * $f_{sc} = 3579545.\dot4\dot5 [\rm{Hz}]$
