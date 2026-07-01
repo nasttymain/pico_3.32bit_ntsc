@@ -111,11 +111,15 @@ namespace tvvt{
 
     // 現在の描画先ポジション。単位は文字(つまり1で8ピクセル)
     int16_t cpos = 0;
+    
+    // マルチバイト文字の描画用のバッファ。一応4バイトぶん持っとくか...
+    uint8_t mbbuf[4] = {0, 0, 0, 0};
+    uint mbbufi = 0;
 
     //
     uint16_t CCOLUMNS = _display_size_x / 8;
 
-    void put_char_graphic(char c, int16_t xpos, int16_t ypos){
+    void put_ascii_graphic(char c, int16_t xpos, int16_t ypos){
         const uint8_t code = (uint8_t)(c) - 32;
         for(int16_t x = 0; x < 8; x++){
             const uint8_t row = font[code * 8 + x];
@@ -127,8 +131,20 @@ namespace tvvt{
         }
     }
     
-    // ascii文字を1つ描画
-    void putc(char c){
+    #ifndef __NASTTY_RCA_TVVT_MB__
+    #define __NASTTY_RCA_TVVT_MB__
+    inline void __put_mb_character(uint32_t code_point){
+        CCOLUMNS = _display_size_x / 8;
+        const int16_t base_x = (cpos % CCOLUMNS) * 8;
+        const int16_t base_y = (cpos / CCOLUMNS) * 8;
+        // rcavt、何にも合致しなければ置換文字
+        box(base_x + 1, base_y + 0, base_x + 6, base_y + 7);
+        cpos += 1;
+        
+    }
+    #endif
+    
+    inline void __putc_ascii(char c){
         CCOLUMNS = _display_size_x / 8;
         if(c < 32 || c == 127){
             if(c == 13){
@@ -146,9 +162,40 @@ namespace tvvt{
         const int16_t base_x = (cpos % CCOLUMNS) * 8;
         const int16_t base_y = (cpos / CCOLUMNS) * 8;
 
-        put_char_graphic(c, base_x, base_y);
+        put_ascii_graphic(c, base_x, base_y);
         cpos += 1;
-
+    }
+    
+    // 文字を1バイトずつ描画
+    void putc(char c){
+        if(c & 0x80){
+            // 上位バイトが立っているのでマルチバイト文字
+            mbbuf[mbbufi] = c;
+            mbbufi += 1;
+            if( (mbbuf[0] >> 5) == 0b110 && mbbufi == 2){
+                // 2バイト文字
+                const uint32_t cp = ((mbbuf[0] & 0x1F) << 6) + (mbbuf[1] & 0x3F);
+                __put_mb_character(cp);
+                mbbufi = 0;
+            }else if( (mbbuf[0] >> 4) == 0b1110 && mbbufi == 3){
+                // 3バイト文字
+                const uint32_t cp = ((mbbuf[0] & 0x0F) << 12) + ((mbbuf[1] & 0x3F) << 6) + (mbbuf[2] & 0x3F);
+                __put_mb_character(cp);
+                mbbufi = 0;
+            }else if(mbbufi == 4){
+                // 4バイト文字のつもり
+                // いつかどこかで
+                mbbufi = 0;
+            }
+            
+        }else{
+            if(mbbufi != 0){
+                // 置換文字の刑
+                __put_mb_character(0xFFFD);
+                mbbufi = 0;
+            }
+            __putc_ascii(c);
+        }
         return;
     }
 

@@ -8,7 +8,7 @@ namespace fonts_show{
             int x = _display_size_x / 2 - 64 + (i % 16) * 8;
             int y = _display_size_y / 2 - 24 + (i / 16) * 8;
             palcolor(COLOR_BLACK);
-            tvvt::put_char_graphic((char)(i + 32), x, y);
+            tvvt::put_ascii_graphic((char)(i + 32), x, y);
         }
     }
 }
