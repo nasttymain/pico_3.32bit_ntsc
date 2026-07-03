@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include "rca.hpp"
+#include "rcavt_mb.hpp"
 #include "rcavt.hpp"
 #include "rcadimz.hpp"
 #include "rcabezier.hpp"
@@ -14,7 +15,7 @@
 
 #include "rcasprite/rcasprite.hpp"
 
-#include "example_or_test/font.hpp"
+#include "example_or_test/color_grayscale_test.hpp"
 
 uint8_t mode = 0;
 
@@ -23,12 +24,11 @@ constexpr const uint8_t test_ei[384] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0
 rcasprite::sprite sprite_ei;
 int main() {
     
-    stdio_init_all();
-    
     init_video_on_core1();
     setDisplayMode(SCREEN_FULLWIDTH_COLOR);
     set_flip_mode(1);
     uint f = 0;
+
     
     picopico_all_init();
 
@@ -42,6 +42,10 @@ int main() {
     sprite_ei.xsize = 16;
     sprite_ei.ysize = 24;
 
+    
+    stdio_init_all();
+    
+    
 
     while(1){
         f += 1;
@@ -49,17 +53,26 @@ int main() {
         clrgraph(1);
         palcolor(COLOR_BLACK);
         
-        fonts_show::draw();
+        c_g_test::draw();
         
         sprite_ei.draw();
         
-        tvvt::pos(1, 1);
-        tvvt::puts("Hello, World! こんにちは世界!!\n");
+        palcolor(COLOR_BLACK);
         
+        tvvt::puts("Hello, World! こんにちは世界!!コンニチハ!!\n");
+                
         fps::draw_fps();
         
         wait_for_vsync();
         do_flip();
+        
+        if(::frame % 300 == 0){
+            if((::frame / 300) % 2 == 0){
+                setDisplayMode(SCREEN_GRAYSCALE);
+            }else{
+                setDisplayMode(SCREEN_FULLWIDTH_COLOR);
+            }
+        }
         
         
         
