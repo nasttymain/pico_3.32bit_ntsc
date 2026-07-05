@@ -174,7 +174,7 @@ __not_in_flash("") const uint8_t amp2out[16] = {
 
 uint8_t flip = 0;
 volatile uint8_t* ptr_next_dma_buf = linebuf_vblank;
-void hndirq0(void){
+void __not_in_flash_func(hndirq0)(void){
     
     dma_hw->ints0 = 1u << dma_chan[flip];
     dma_channel_abort(dma_chan[flip]);
