@@ -39,8 +39,8 @@ int main() {
     sprite_ei.palette[1] = COLOR_BLACK;
     sprite_ei.palette[2] = COLOR_WHITE;
     sprite_ei.palette[3] = COLOR_LIGHTGRAY;
-    sprite_ei.xpos = 32;
-    sprite_ei.ypos = 32;
+    sprite_ei.xpos = 48;
+    sprite_ei.ypos = 48;
     sprite_ei.xsize = 16;
     sprite_ei.ysize = 24;
 
@@ -68,6 +68,7 @@ void draw_by_core1(){
         
         palcolor(COLOR_BLACK);
         
+        tvvt::pos(2, 2);
         tvvt::puts("Hello, World! こんにちは世界!!コンニチハ!!\n");
                 
         fps::draw_fps();
