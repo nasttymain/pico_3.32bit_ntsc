@@ -4,6 +4,7 @@
 #include "picopico.pio.h"
 #include "hardware/clocks.h"
 #include "hardware/irq.h"
+#include "hardware/dma.h"
 
 #define PIO_PICOPICO pio1
 

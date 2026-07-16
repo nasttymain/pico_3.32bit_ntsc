@@ -3,9 +3,12 @@
 #ifndef __NASTTY_CVBS_TVVT__
 #define __NASTTY_CVBS_TVVT__
 
+#include <cstdint>
+
+typedef unsigned int uint;
+
 namespace tvvt{
     
-    #include <cstdint>
 
     // 8x8 ASCIIフォント。1バイトはあるライン(横8ピクセル)の色情報。1文字は8バイト
     // ミスった！↑これ間違いだ！このフォントは SSD1306 用フォントなんだけどそういやあいつ 1バイトは縦だった!!!

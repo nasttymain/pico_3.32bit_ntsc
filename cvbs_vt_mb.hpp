@@ -1,8 +1,11 @@
 #ifndef __NASTTY_CVBS_TVVT_MB__
 #define __NASTTY_CVBS_TVVT_MB__
 #include "cvbs.hpp"
+#include <cstdint>
 
 #include "stdlib.h"
+
+typedef unsigned int uint;
 
 namespace tvvt{
     extern uint16_t CCOLUMNS;
