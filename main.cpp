@@ -1,11 +1,11 @@
 //#define VIDEO_TEST_PTN_COLOR
 
 #include <stdio.h>
-#include "rca.hpp"
-#include "rcavt_mb.hpp"
-#include "rcavt.hpp"
-#include "rcadimz.hpp"
-#include "rcabezier.hpp"
+#include "cvbs.hpp"
+#include "cvbs_vt_mb.hpp"
+#include "cvbs_vt.hpp"
+#include "cvbs_dimz.hpp"
+#include "cvbs_bezier.hpp"
 #include "picopico_sound/picopico.hpp"
 #include "pico/time.h"
 #include "hardware/dma.h"
@@ -13,7 +13,7 @@
 
 #include "video_util/fps.hpp"
 
-#include "rcasprite/rcasprite.hpp"
+#include "cvbssprite/cvbs_sprite.hpp"
 
 #include "example_or_test/color_grayscale_test.hpp"
 
@@ -21,7 +21,7 @@ uint8_t mode = 0;
 
 constexpr const uint8_t test_ei[384] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 1, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 1, 0, 0, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1, 0, 1, 2, 2, 3, 2, 2, 2, 2, 2, 2, 3, 2, 2, 1, 0, 0, 1, 2, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 0, 0, 0, 1, 2, 3, 2, 2, 2, 2, 2, 2, 3, 2, 1, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0};
 
-rcasprite::sprite sprite_ei;
+cvbssprite::sprite sprite_ei;
 
 void draw_by_core1();
 

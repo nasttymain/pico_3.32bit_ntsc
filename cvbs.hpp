@@ -1,8 +1,8 @@
 #include <cstdint>
 
 
-#ifndef __NASTTY_RCA_1BIT__
-#define __NASTTY_RCA_1BIT__
+#ifndef __NASTTY_CVBS_PIO__
+#define __NASTTY_CVBS_PIO__
 
 void pset(int16_t xpos, int16_t ypos);
 uint8_t __pget(int16_t xpos, int16_t ypos);
@@ -56,8 +56,8 @@ extern uint8_t flip;
 
 #define __TV_PAL_COLOR6(c, y) ((y & 3) + (((c) & 15) << 2))
 
-#ifdef NASTTY_RCA_DEBUG_OUT
-    #define NASTTY_RCA_DEBUG_PIN 0
+#ifdef NASTTY_CVBS_DEBUG_OUT
+    #define NASTTY_CVBS_DEBUG_PIN 0
 #endif
 
 
@@ -210,8 +210,8 @@ void __not_in_flash_func(hndirq0)(void){
     dma_hw->ints0 = 1u << dma_chan[flip];
     dma_channel_abort(dma_chan[flip]);
 
-    #ifdef NASTTY_RCA_DEBUG_OUT
-        gpio_put(NASTTY_RCA_DEBUG_PIN, 1);
+    #ifdef NASTTY_CVBS_DEBUG_OUT
+        gpio_put(NASTTY_CVBS_DEBUG_PIN, 1);
     #endif
     
     const auto prev_flip = flip; 
@@ -310,8 +310,8 @@ void __not_in_flash_func(hndirq0)(void){
     dma_channel_set_read_addr(dma_chan[prev_flip], ptr_next_dma_buf, false);
     // END-- Next DMA Settings
     
-    #ifdef NASTTY_RCA_DEBUG_OUT
-        gpio_put(NASTTY_RCA_DEBUG_PIN, 0);
+    #ifdef NASTTY_CVBS_DEBUG_OUT
+        gpio_put(NASTTY_CVBS_DEBUG_PIN, 0);
     #endif
 }
 
@@ -632,9 +632,9 @@ void init_dma(){
     irq_set_enabled(DMA_IRQ_0, true);
     dma_channel_start(dma_chan[0]);
     
-    #ifdef NASTTY_RCA_DEBUG_OUT
-        gpio_init(NASTTY_RCA_DEBUG_PIN);
-        gpio_set_dir(NASTTY_RCA_DEBUG_PIN, GPIO_OUT);
+    #ifdef NASTTY_CVBS_DEBUG_OUT
+        gpio_init(NASTTY_CVBS_DEBUG_PIN);
+        gpio_set_dir(NASTTY_CVBS_DEBUG_PIN, GPIO_OUT);
     #endif
 }
 
@@ -938,4 +938,4 @@ void init_video_on_core1(){
 }
 
 
-#endif // __NASTTY_RCA_1BIT__
+#endif // __NASTTY_CVBS_PIO__

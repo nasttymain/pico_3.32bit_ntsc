@@ -1,13 +1,13 @@
-#include "rca.hpp"
+#include "cvbs.hpp"
 
 #ifndef COLOR_TRANSPARENT
 #define COLOR_TRANSPARENT 63
 #endif
 
-#ifndef __NASTTY_RCA_SPRITE__
-#define __NASTTY_RCA_SPRITE__
+#ifndef __NASTTY_CVBS_SPRITE__
+#define __NASTTY_CVBS_SPRITE__
 
-namespace rcasprite{
+namespace cvbssprite{
     #include <cstdint>
     constexpr const uint8_t default_palette[16]  = {
         63, 29, 30, 34, 46, 6, 8, 22, 48, 49, 50, 51, 0, 1, 2, 3

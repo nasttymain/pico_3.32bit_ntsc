@@ -1,7 +1,7 @@
-#include "rca.hpp"
+#include "cvbs.hpp"
 
-#ifndef __NASTTY_RCA_BEZIER__
-#define __NASTTY_RCA_BEZIER__
+#ifndef __NASTTY_CVBS_BEZIER__
+#define __NASTTY_CVBS_BEZIER__
 
 namespace tvbezier{
     #include <cstdint>

@@ -1,8 +1,8 @@
-#ifndef __NASTTY_RCA_FPS__
-#define __NASTTY_RCA_FPS__
+#ifndef __NASTTY_CVBS_FPS__
+#define __NASTTY_CVBS_FPS__
 
-#include "rca.hpp"
-#include "rcavt.hpp"
+#include "cvbs.hpp"
+#include "cvbs_vt.hpp"
 #include "pico/time.h"
 #include "pico/stdio.h"
 
