@@ -533,8 +533,7 @@ void setDisplayMode(uint16_t mode){
         current_color = 1;
         _display_size_x = 360;
         
-    }
-    if(mode == SCREEN_PALETTE){
+    }else if(mode == SCREEN_PALETTE){
         // 2: SCREEN_PALETTE。有効色52色。左右2ピクセル単位でクロマ信号を共有する
         if(previous_color_mode == SCREEN_GRAYSCALE){
             _restore_colorburst();
@@ -713,7 +712,7 @@ void fill(int16_t x, int16_t y){
 // ま、正確には待ってる対象は vblank なんだけどね
 void wait_for_vsync(){
     const auto f = frame;
-    while(f == frame){ /*asm("wfi"); ←core1 で動かしてる以上core0にライン割り込みは飛ばないため*/ }
+    while(f == frame){ tight_loop_contents();/*asm("wfi"); ←core1 で動かしてる以上core0にライン割り込みは飛ばないため*/ }
     return;
 }
 
@@ -806,7 +805,7 @@ void circle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t fill_mode){
     
     int_fast16_t oldx = 0;
     
-    if(fill_mode == 1){
+    if(fill_mode != 0){
         // 塗りつぶし
         for(int_fast16_t ycnt = - b; ycnt <= 0; ycnt += 1){
             if((ycnt % 2) != 0){
@@ -824,9 +823,7 @@ void circle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t fill_mode){
             oldx = newx;
         }
         
-    }
-    
-    if(fill_mode == 0){
+    }else /*if(fill_mode == 0)*/{
         // 輪郭
         for(int_fast16_t ycnt = - b; ycnt <= 0; ycnt += 1){
             if((ycnt % 2) != 0){
