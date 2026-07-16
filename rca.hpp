@@ -1,24 +1,53 @@
 #include <cstdint>
-void pset(int16_t x, int16_t y);
-void palcolor(uint8_t palno);
-void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
-void wait_for_vsync();
-void triangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
-void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
-void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
-void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
-void lcscolor(uint8_t luma, uint8_t chroma, uint8_t saturation);
-uint8_t pget(int16_t xpos, int16_t ypos);
-void fill(int16_t x, int16_t y);
-void pos(int16_t x, int16_t y);
-void gcopy(uint8_t window_id, int16_t x1, int16_t y1, int16_t xsize, int16_t ysize);
 
+
+#ifndef __NASTTY_RCA_1BIT__
+#define __NASTTY_RCA_1BIT__
+
+void pset(int16_t xpos, int16_t ypos);
+uint8_t __pget(int16_t xpos, int16_t ypos);
+uint8_t pget(int16_t xpos, int16_t ypos);
+void __fast_hline(int_fast16_t y, int_fast16_t x1, int_fast16_t x2);
+void palcolor(uint8_t palno);
+void lcscolor(uint8_t chroma, uint8_t luma, uint8_t saturation);
 void init_framedata();
 void _remove_colorburst();
 void _restore_colorburst();
 void setDisplayMode(uint16_t mode);
 void init_dma();
+void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
+void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
+void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
+void fill(int16_t x, int16_t y);
+void wait_for_vsync();
+void clrgraph(uint8_t clr_mode);
+void triangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
+void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
+void pos(int16_t x, int16_t y);
+void gcopy(uint8_t window_id, int16_t x1, int16_t y1, int16_t xsize, int16_t ysize);
+void circle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t fill_mode);
+void set_flip_mode(uint8_t flag);
+void do_flip();
 void vsync_mode(uint8_t mode);
+void core1_main();
+void init_video_on_core1();
+
+extern uint16_t color_mode;
+extern volatile uint16_t lineno;
+extern volatile uint32_t frame;
+
+extern volatile uint8_t flip_mode;
+
+extern uint8_t current_color;
+
+extern int16_t ginfo_cx;
+extern int16_t ginfo_cy;
+
+typedef void (* fptr_void_void_t)(void);
+extern volatile fptr_void_void_t core1_loop;
+
+extern uint8_t flip;
+
 
 //#define SCREEN_PALETTE 2
 #define SCREEN_GRAYSCALE 1024
@@ -27,32 +56,28 @@ void vsync_mode(uint8_t mode);
 
 #define __TV_PAL_COLOR6(c, y) ((y & 3) + (((c) & 15) << 2))
 
-#define COLOR_RED           __TV_PAL_COLOR6(0x7, 0x1)
-#define COLOR_ORANGE        __TV_PAL_COLOR6(0x7, 0x2)
-#define COLOR_YELLOW        __TV_PAL_COLOR6(0x8, 0x2)
-#define COLOR_GREEN         __TV_PAL_COLOR6(0xB, 0x2)
-#define COLOR_SKYBLUE       __TV_PAL_COLOR6(0x1, 0x2)
-#define COLOR_BLUE          __TV_PAL_COLOR6(0x2, 0x0)
-#define COLOR_PURPLE        __TV_PAL_COLOR6(0x5, 0x2)
-#define COLOR_BLACK         __TV_PAL_COLOR6(0xC, 0x0)
-#define COLOR_DARKGRAY      __TV_PAL_COLOR6(0xC, 0x1)
-#define COLOR_LIGHTGRAY     __TV_PAL_COLOR6(0xC, 0x2)
-#define COLOR_WHITE         __TV_PAL_COLOR6(0xC, 0x3)
-
-/*
-void cls(uint8_t cls_mode);
-*/
-
-#include "hardware/gpio.h"
-
-#define NASTTY_RCA_DEBUG_OUT
-
 #ifdef NASTTY_RCA_DEBUG_OUT
     #define NASTTY_RCA_DEBUG_PIN 0
 #endif
 
-#ifndef __NASTTY_RCA_1BIT__
-#define __NASTTY_RCA_1BIT__
+
+#define  COLOR_RED        __TV_PAL_COLOR6(0x7, 0x1)
+#define  COLOR_ORANGE     __TV_PAL_COLOR6(0x7, 0x2)
+#define  COLOR_YELLOW     __TV_PAL_COLOR6(0x8, 0x2)
+#define  COLOR_GREEN      __TV_PAL_COLOR6(0xB, 0x2)
+#define  COLOR_SKYBLUE    __TV_PAL_COLOR6(0x1, 0x2)
+#define  COLOR_BLUE       __TV_PAL_COLOR6(0x2, 0x0)
+#define  COLOR_PURPLE     __TV_PAL_COLOR6(0x5, 0x2)
+#define  COLOR_BLACK      __TV_PAL_COLOR6(0xC, 0x0)
+#define  COLOR_DARKGRAY   __TV_PAL_COLOR6(0xC, 0x1)
+#define  COLOR_LIGHTGRAY  __TV_PAL_COLOR6(0xC, 0x2)
+#define  COLOR_WHITE      __TV_PAL_COLOR6(0xC, 0x3)
+
+
+// ----------------------------------------------------------------
+
+
+#include "hardware/gpio.h"
 
 #include "hardware/clocks.h"
 #include "hardware/pio.h"
@@ -66,7 +91,9 @@ void cls(uint8_t cls_mode);
 #include "pico/multicore.h"
 #include "hardware/structs/bus_ctrl.h"
 
-#define START_PIN 16
+#ifndef START_PIN
+    #define START_PIN 16
+#endif
 #define ROW_PINS 4
 
 // PIO program is a simple pull and shift out
@@ -110,7 +137,7 @@ constexpr const uint16_t DISP_RES_X = (LEN_ACTIVE_VIDEO) / 4;
 constexpr const uint16_t DISP_RES_X_GRAYSCALE = LEN_ACTIVE_VIDEO / 2;
 constexpr const uint16_t DISP_RES_Y = VIEWPORT_RES_Y;
 
-uint16_t _display_size_x = 180;
+uint16_t _display_size_x = 360;
 uint16_t _display_size_y = DISP_RES_Y;
 
 constexpr const size_t FRAMEBUF_MEM_SIZE = 192 * DISP_RES_Y;
@@ -120,7 +147,7 @@ uint8_t framebuf[FRAMEBUF_MEM_SIZE * 2] __attribute__((aligned(4)));
 uint32_t flip_offset = 0;
 uint32_t flip_draw_offset = 0;
 
-uint8_t flip_mode = 0;
+volatile uint8_t flip_mode = 0;
 
 
 PIO pio = pio0;
@@ -172,6 +199,9 @@ __not_in_flash("") const uint8_t amp2out[16] = {
     0b1111,
 };
 #define AMPINDEX_0IRE 5
+
+volatile fptr_void_void_t core1_loop = nullptr;
+
 
 uint8_t flip = 0;
 volatile uint8_t* ptr_next_dma_buf = linebuf_vblank;
@@ -729,6 +759,7 @@ inline uint8_t __clrgraph_pattern(uint8_t clr_mode){
     }
     return 0b00000000;
 };
+
 void clrgraph(uint8_t clr_mode){
     const uint8_t c = __clrgraph_pattern(clr_mode);
     
@@ -884,8 +915,6 @@ void vsync_mode(uint8_t mode){
 
 volatile uint8_t is_core1_initialized = 0;
 
-typedef void (* fptr_void_void_t)(void);
-volatile fptr_void_void_t core1_loop = nullptr;
 
 void core1_main(){
     bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_R_BITS | BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_PROC1_BITS;
