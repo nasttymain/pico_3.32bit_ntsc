@@ -1,11 +1,14 @@
-#include "rca.hpp"
+#include "cvbs.hpp"
 
-#ifndef __NASTTY_RCA_TVVT__
-#define __NASTTY_RCA_TVVT__
+#ifndef __NASTTY_CVBS_TVVT__
+#define __NASTTY_CVBS_TVVT__
+
+#include <cstdint>
+
+typedef unsigned int uint;
 
 namespace tvvt{
     
-    #include <cstdint>
 
     // 8x8 ASCIIフォント。1バイトはあるライン(横8ピクセル)の色情報。1文字は8バイト
     // ミスった！↑これ間違いだ！このフォントは SSD1306 用フォントなんだけどそういやあいつ 1バイトは縦だった!!!
@@ -131,13 +134,13 @@ namespace tvvt{
         }
     }
     
-    #ifndef __NASTTY_RCA_TVVT_MB__
-    #define __NASTTY_RCA_TVVT_MB__
+    #ifndef __NASTTY_CVBS_TVVT_MB__
+    #define __NASTTY_CVBS_TVVT_MB__
     inline void __put_mb_character(uint32_t code_point){
         CCOLUMNS = _display_size_x / 8;
         const int16_t base_x = (cpos % CCOLUMNS) * 8;
         const int16_t base_y = (cpos / CCOLUMNS) * 8;
-        // rcavt、何にも合致しなければ置換文字
+        // 何にも合致しなければ置換文字
         box(base_x + 1, base_y + 0, base_x + 6, base_y + 7);
         cpos += 1;
         

@@ -1,57 +1,10 @@
+#include "cvbs.hpp"
+
+// ----------------------------------------------------------------
+
 #include <cstdint>
-void pset(int16_t x, int16_t y);
-void palcolor(uint8_t palno);
-void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
-void wait_for_vsync();
-void triangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
-void trianglef(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3);
-void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
-void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
-void lcscolor(uint8_t luma, uint8_t chroma, uint8_t saturation);
-uint8_t pget(int16_t xpos, int16_t ypos);
-void fill(int16_t x, int16_t y);
-void pos(int16_t x, int16_t y);
-void gcopy(uint8_t window_id, int16_t x1, int16_t y1, int16_t xsize, int16_t ysize);
-
-void init_framedata();
-void _remove_colorburst();
-void _restore_colorburst();
-void setDisplayMode(uint16_t mode);
-void init_dma();
-void vsync_mode(uint8_t mode);
-
-#define SCREEN_PALETTE 2
-#define SCREEN_GRAYSCALE 1024
-#define SCREEN_FULLWIDTH_COLOR 2048
-
-#define __TV_PAL_COLOR6(c, y) ((y & 3) + (((c) & 15) << 2))
-
-#define COLOR_RED           __TV_PAL_COLOR6(0x7, 0x1)
-#define COLOR_ORANGE        __TV_PAL_COLOR6(0x7, 0x2)
-#define COLOR_YELLOW        __TV_PAL_COLOR6(0x8, 0x2)
-#define COLOR_GREEN         __TV_PAL_COLOR6(0xB, 0x2)
-#define COLOR_SKYBLUE       __TV_PAL_COLOR6(0x1, 0x2)
-#define COLOR_BLUE          __TV_PAL_COLOR6(0x2, 0x0)
-#define COLOR_PURPLE        __TV_PAL_COLOR6(0x5, 0x2)
-#define COLOR_BLACK         __TV_PAL_COLOR6(0xC, 0x0)
-#define COLOR_DARKGRAY      __TV_PAL_COLOR6(0xC, 0x1)
-#define COLOR_LIGHTGRAY     __TV_PAL_COLOR6(0xC, 0x2)
-#define COLOR_WHITE         __TV_PAL_COLOR6(0xC, 0x3)
-
-/*
-void cls(uint8_t cls_mode);
-*/
 
 #include "hardware/gpio.h"
-
-#define NASTTY_RCA_DEBUG_OUT
-
-#ifdef NASTTY_RCA_DEBUG_OUT
-    #define NASTTY_RCA_DEBUG_PIN 0
-#endif
-
-#ifndef __NASTTY_RCA_1BIT__
-#define __NASTTY_RCA_1BIT__
 
 #include "hardware/clocks.h"
 #include "hardware/pio.h"
@@ -65,7 +18,9 @@ void cls(uint8_t cls_mode);
 #include "pico/multicore.h"
 #include "hardware/structs/bus_ctrl.h"
 
-#define START_PIN 16
+#ifndef START_PIN
+    #define START_PIN 16
+#endif
 #define ROW_PINS 4
 
 // PIO program is a simple pull and shift out
@@ -75,13 +30,6 @@ void cls(uint8_t cls_mode);
 //     out pins, 4
 int dma_chan[2];
 
-// タイミング一覧
-constexpr const uint16_t LEN_FRONT_PORCH            = 21;
-constexpr const uint16_t LEN_SYNC_PULSE             = 67;
-constexpr const uint16_t LEN_BACK_PORCH             = 68;
-constexpr const uint16_t LEN_ACTIVE_VIDEO           = 756;
-constexpr const uint16_t LEN_BEFORE_ACTIVE_VIDEO    = LEN_FRONT_PORCH + LEN_SYNC_PULSE + LEN_BACK_PORCH; //156
-constexpr const uint16_t LEN_LINE_LENGTH            = LEN_FRONT_PORCH + LEN_SYNC_PULSE + LEN_BACK_PORCH + LEN_ACTIVE_VIDEO; // 912
 
 // 画面モードに関する変数
 uint16_t color_mode = SCREEN_PALETTE;
@@ -92,7 +40,6 @@ volatile uint32_t frame = 0;
 // もともとのコードでは 2bit だったが、今回から 4bit (同期信号のほかに 3bit 分の信号がある。モノクロなら 8 階調分)
 // 色数は (有彩色 12 + 無彩色 1) x 4 = 52 色。なんとやり方がファミコンといっしょでびっくり!
 // でも、DAC の階調が少ない関係で輝度 100% ではカラーバーストの波形を正しく現せず、実際はもう少し少ない。
-constexpr const uint16_t LINEBUF_LEN = LEN_LINE_LENGTH / 2;
 uint8_t linebuf_a[LINEBUF_LEN] __attribute__((aligned(4)));
 uint8_t linebuf_b[LINEBUF_LEN] __attribute__((aligned(4)));
 uint8_t* ptr_linebuf[2] = {linebuf_a, linebuf_b};
@@ -100,17 +47,6 @@ uint8_t linebuf_vblank[LINEBUF_LEN] __attribute__((aligned(4)));
 uint8_t linebuf_vsync[LINEBUF_LEN] __attribute__((aligned(4)));
 uint8_t* ptr_linebuf_vsync = &linebuf_vsync[0];
 
-#define VIEWPORT_RES_X 360
-#define VIEWPORT_RES_Y 232
-
-
-// X 方向に 360 pixel。縦は 232 ラインを使う
-constexpr const uint16_t DISP_RES_X = (LEN_ACTIVE_VIDEO) / 4;
-constexpr const uint16_t DISP_RES_X_GRAYSCALE = LEN_ACTIVE_VIDEO / 2;
-constexpr const uint16_t DISP_RES_Y = VIEWPORT_RES_Y;
-
-uint16_t _display_size_x = 180;
-uint16_t _display_size_y = DISP_RES_Y;
 
 constexpr const size_t FRAMEBUF_MEM_SIZE = 192 * DISP_RES_Y;
 uint8_t framebuf[FRAMEBUF_MEM_SIZE * 2] __attribute__((aligned(4)));
@@ -119,7 +55,7 @@ uint8_t framebuf[FRAMEBUF_MEM_SIZE * 2] __attribute__((aligned(4)));
 uint32_t flip_offset = 0;
 uint32_t flip_draw_offset = 0;
 
-uint8_t flip_mode = 0;
+volatile uint8_t flip_mode = 0;
 
 
 PIO pio = pio0;
@@ -172,6 +108,9 @@ __not_in_flash("") const uint8_t amp2out[16] = {
 };
 #define AMPINDEX_0IRE 5
 
+volatile fptr_void_void_t core1_loop = nullptr;
+
+
 uint8_t flip = 0;
 volatile uint8_t* ptr_next_dma_buf = linebuf_vblank;
 void __not_in_flash_func(hndirq0)(void){
@@ -179,8 +118,8 @@ void __not_in_flash_func(hndirq0)(void){
     dma_hw->ints0 = 1u << dma_chan[flip];
     dma_channel_abort(dma_chan[flip]);
 
-    #ifdef NASTTY_RCA_DEBUG_OUT
-        gpio_put(NASTTY_RCA_DEBUG_PIN, 1);
+    #ifdef NASTTY_CVBS_DEBUG_OUT
+        gpio_put(NASTTY_CVBS_DEBUG_PIN, 1);
     #endif
     
     const auto prev_flip = flip; 
@@ -193,31 +132,7 @@ void __not_in_flash_func(hndirq0)(void){
         const uint_fast32_t lineoffset = (linenum << 7) + (linenum << 6);
         // 映像として有効な x 方向のlinebufの添字は、79～454(455は捨てる)の376バイト、188ピクセル。
         
-        if(color_mode == SCREEN_PALETTE){
-            // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_PALETTE
-            for(uint_fast16_t i = 0; i < 188; i += 1){
-                #ifndef VIDEO_TEST_PTN_COLOR
-                const uint_fast8_t pxdat = framebuf[flip_draw_offset + lineoffset + i];
-                #else
-                // 以下、テストパターンジェネレータ
-                const uint_fast8_t pxdat = (i >> 2) + (linenum >= 120 ? 48 : 0);
-                // 以上、テストパターンジェネレータ
-                #endif
-                const int_fast8_t pxvalue = pxdat & 0b00000011;
-                const int_fast8_t pxcolorphase =  (pxdat & 0b00111100) >> 2;
-                const uint_fast8_t pxcolorvalue = (pxcolorphase >= 12 ? 0 : 1);
-                
-                const uint_fast8_t subpx[4] = {
-                    amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 0] * pxcolorvalue + AMPINDEX_0IRE],
-                    amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 3] * pxcolorvalue + AMPINDEX_0IRE],
-                    amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 6] * pxcolorvalue + AMPINDEX_0IRE],
-                    amp2out[(pxvalue << 1) + sin12[(pxcolorphase) + 9] * pxcolorvalue + AMPINDEX_0IRE]
-                };
-                (ptr_linebuf[flip])[xindex_base + (i << 1) + 0] = (subpx[0] << 4) + (subpx[1]);
-                (ptr_linebuf[flip])[xindex_base + (i << 1) + 1] = (subpx[2] << 4) + (subpx[3]);
-            }
-            // END LINE_DATA_CONSTRUCT WHEN SCREEN_PALETTE
-        }else if(color_mode == SCREEN_GRAYSCALE){
+        if(color_mode == SCREEN_GRAYSCALE){
             // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_GRAYSCALE
             for(uint_fast16_t i = 0; i < 188; i += 1){
                 #ifndef VIDEO_TEST_PTN_COLOR
@@ -240,7 +155,7 @@ void __not_in_flash_func(hndirq0)(void){
             }
             // END LINE_DATA_CONSTRUCT WHEN SCREEN_GRAYSCALE
         }else{
-            // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_FULLWIDTH_COLOR
+            // BEGIN LINE_DATA_CONSTRUCT WHEN SCREEN_PALETTE
             uint8_t* framebufptr = &framebuf[flip_draw_offset + lineoffset];
             uint8_t* linebufptr  = &ptr_linebuf[flip][xindex_base];
             for(uint_fast16_t i = 0; i < 188; i += 1){
@@ -265,7 +180,7 @@ void __not_in_flash_func(hndirq0)(void){
                 *linebufptr = (subpx[2] << 4) + (subpx[3]);
                 linebufptr += 1;
             }
-            // END LINE_DATA_CONSTRUCT WHEN SCREEN_FULLWIDTH_COLOR
+            // END LINE_DATA_CONSTRUCT WHEN SCREEN_PALETTE
         }
     }
     
@@ -303,8 +218,8 @@ void __not_in_flash_func(hndirq0)(void){
     dma_channel_set_read_addr(dma_chan[prev_flip], ptr_next_dma_buf, false);
     // END-- Next DMA Settings
     
-    #ifdef NASTTY_RCA_DEBUG_OUT
-        gpio_put(NASTTY_RCA_DEBUG_PIN, 0);
+    #ifdef NASTTY_CVBS_DEBUG_OUT
+        gpio_put(NASTTY_CVBS_DEBUG_PIN, 0);
     #endif
 }
 
@@ -338,10 +253,8 @@ void pset(int16_t xpos, int16_t ypos){
     if(y < 0 || y >= _display_size_y){
         return;
     }
-    if(color_mode == SCREEN_PALETTE){
-        const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + x;
-        framebuf[flip_offset + c] = (framebuf[flip_offset + c] & 0b11000000) + (current_color & 0b00111111);
-    }else if(color_mode == SCREEN_GRAYSCALE){
+    
+    if(color_mode == SCREEN_GRAYSCALE){
         const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
@@ -350,7 +263,7 @@ void pset(int16_t xpos, int16_t ypos){
             // 1: 右
             framebuf[flip_offset + c] = framebuf[flip_offset + c] & 0b11111100 + ((current_color & 0b00000011));
         }
-    }else if(color_mode == SCREEN_FULLWIDTH_COLOR){
+    }else/* if(color_mode == SCREEN_PALETTE)*/{
         const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
@@ -366,20 +279,14 @@ uint8_t __pget(int16_t xpos, int16_t ypos){
     const int_fast16_t x = xpos + drawing_x_offset;
     const int_fast16_t y = ypos;
     uint8_t cc;
-    if(color_mode == SCREEN_PALETTE){
-        //未検証
-        const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + x;
-        cc = (framebuf[flip_offset + c] & 0b00111111);
+    // SCREEN_GRAYSCALE or SCREEN_PALETTE
+    const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
+    if((x & 1) == 0){
+        // 0: 左
+        cc = (framebuf[flip_offset + c] >> 6) + (framebuf[flip_offset + c] & 0b00111100);
     }else{
-        // SCREEN_GRAYSCALE or SCREEN_FULLWIDTH_COLOR
-        const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
-        if((x & 1) == 0){
-            // 0: 左
-            cc = (framebuf[flip_offset + c] >> 6) + (framebuf[flip_offset + c] & 0b00111100);
-        }else{
-            // 1: 右
-            cc =  (framebuf[flip_offset + c] & 0b00111111);
-        }
+        // 1: 右
+        cc =  (framebuf[flip_offset + c] & 0b00111111);
     }
     return cc;
 }
@@ -398,7 +305,7 @@ uint8_t pget(int16_t xpos, int16_t ypos){
     return current_color;
 }
 
-// SCREEN_FULLWIDTH_COLOR でしか使わないこと
+// SCREEN_PALETTE でしか使わないこと
 void __fast_hline(int_fast16_t y, int_fast16_t x1, int_fast16_t x2){
     
     const int_fast16_t _x1 = (x1 > x2) ? x2 + drawing_x_offset: x1 + drawing_x_offset;
@@ -555,33 +462,20 @@ void _restore_colorburst(){
 
 void setDisplayMode(uint16_t mode){
     const uint16_t previous_color_mode = color_mode;
-    if(mode == SCREEN_PALETTE){
-        // 2: SCREEN_PALETTE。1バイトで色を表し、有効色は 52 色
+    if(mode == SCREEN_GRAYSCALE){
+        // 1024: SCREEN_PALETTE。1バイトで濃淡を表し、有効色は 4 色
+        if(previous_color_mode == SCREEN_PALETTE){
+            _remove_colorburst();
+        }
+        color_mode = SCREEN_GRAYSCALE;
+        current_color = 1;
+    }else if(mode == SCREEN_PALETTE){
+        // 2: SCREEN_PALETTE。有効色52色。左右2ピクセル単位でクロマ信号を共有する
         if(previous_color_mode == SCREEN_GRAYSCALE){
             _restore_colorburst();
         }
         color_mode = SCREEN_PALETTE;
         current_color = 1;
-        _display_size_x = 180;
-    }
-    if(mode == SCREEN_GRAYSCALE){
-        // 1024: SCREEN_PALETTE。1バイトで濃淡を表し、有効色は 4 色
-        if(previous_color_mode == SCREEN_PALETTE || previous_color_mode == SCREEN_FULLWIDTH_COLOR){
-            _remove_colorburst();
-        }
-        color_mode = SCREEN_GRAYSCALE;
-        current_color = 1;
-        _display_size_x = 360;
-        
-    }
-    if(mode == SCREEN_FULLWIDTH_COLOR){
-        // 2048: SCREEN_FULLWIDTH_COLOR。有効色52色。左右2ピクセル単位でクロマ信号を共有する
-        if(previous_color_mode == SCREEN_GRAYSCALE){
-            _restore_colorburst();
-        }
-        color_mode = SCREEN_FULLWIDTH_COLOR;
-        current_color = 1;
-        _display_size_x = 360;
     }
 }
 
@@ -643,9 +537,9 @@ void init_dma(){
     irq_set_enabled(DMA_IRQ_0, true);
     dma_channel_start(dma_chan[0]);
     
-    #ifdef NASTTY_RCA_DEBUG_OUT
-        gpio_init(NASTTY_RCA_DEBUG_PIN);
-        gpio_set_dir(NASTTY_RCA_DEBUG_PIN, GPIO_OUT);
+    #ifdef NASTTY_CVBS_DEBUG_OUT
+        gpio_init(NASTTY_CVBS_DEBUG_PIN);
+        gpio_set_dir(NASTTY_CVBS_DEBUG_PIN, GPIO_OUT);
     #endif
 }
 
@@ -684,16 +578,8 @@ void boxf(int16_t x1, int16_t y1, int16_t x2, int16_t y2){
     const int_fast16_t xr2 = (x2 < _display_size_x) ? x2 : _display_size_x;
     const int_fast16_t yr1 = (y1 > 0              ) ? y1 : 0;
     const int_fast16_t yr2 = (y2 < _display_size_y) ? y2 : _display_size_y;
-    if(color_mode == SCREEN_FULLWIDTH_COLOR || color_mode == SCREEN_GRAYSCALE){
-        for(int_fast16_t yc = yr1; yc < yr1 + (yr2 - yr1 + 1); yc += 1){
-            __fast_hline(yc, xr1, xr2);
-        }
-    }else{
-        for(int_fast16_t yc = yr1; yc < yr1 + (yr2 - yr1 + 1); yc += 1){
-            for(int_fast16_t xc = xr1; xc < xr1 + (xr2 - xr1 + 1); xc += 1){
-                pset(xc, yc);
-            }
-        }
+    for(int_fast16_t yc = yr1; yc < yr1 + (yr2 - yr1 + 1); yc += 1){
+        __fast_hline(yc, xr1, xr2);
     }
 }
 
@@ -761,7 +647,7 @@ void fill(int16_t x, int16_t y){
 // ま、正確には待ってる対象は vblank なんだけどね
 void wait_for_vsync(){
     const auto f = frame;
-    while(f == frame){ /*asm("wfi"); ←core1 で動かしてる以上core0にライン割り込みは飛ばないため*/ }
+    while(f == frame){ tight_loop_contents();/*asm("wfi"); ←core1 で動かしてる以上core0にライン割り込みは飛ばないため*/ }
     return;
 }
 
@@ -771,9 +657,6 @@ inline uint8_t __clrgraph_pattern(uint8_t clr_mode){
         return 0b00110000;
     }
     if(color_mode == SCREEN_PALETTE){
-        return 0b00110011;
-    }
-    if(color_mode == SCREEN_FULLWIDTH_COLOR){
         return 0b11110011;
     }
     if(color_mode == SCREEN_GRAYSCALE){
@@ -781,6 +664,7 @@ inline uint8_t __clrgraph_pattern(uint8_t clr_mode){
     }
     return 0b00000000;
 };
+
 void clrgraph(uint8_t clr_mode){
     const uint8_t c = __clrgraph_pattern(clr_mode);
     
@@ -857,7 +741,7 @@ void circle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t fill_mode){
     
     int_fast16_t oldx = 0;
     
-    if(fill_mode == 1){
+    if(fill_mode != 0){
         // 塗りつぶし
         for(int_fast16_t ycnt = - b; ycnt <= 0; ycnt += 1){
             if((ycnt % 2) != 0){
@@ -875,9 +759,7 @@ void circle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t fill_mode){
             oldx = newx;
         }
         
-    }
-    
-    if(fill_mode == 0){
+    }else /*if(fill_mode == 0)*/{
         // 輪郭
         for(int_fast16_t ycnt = - b; ycnt <= 0; ycnt += 1){
             if((ycnt % 2) != 0){
@@ -938,8 +820,6 @@ void vsync_mode(uint8_t mode){
 
 volatile uint8_t is_core1_initialized = 0;
 
-typedef void (* fptr_void_void_t)(void);
-volatile fptr_void_void_t core1_loop = nullptr;
 
 void core1_main(){
     bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_R_BITS | BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_PROC1_BITS;
@@ -961,6 +841,3 @@ void init_video_on_core1(){
     multicore_launch_core1(core1_main);
     while(is_core1_initialized == 0){}
 }
-
-
-#endif // __NASTTY_RCA_1BIT__

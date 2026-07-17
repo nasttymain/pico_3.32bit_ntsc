@@ -1,11 +1,11 @@
-#include "rca.hpp"
-#include "rcavt.hpp"
+#include "cvbs.hpp"
+#include "cvbs_vt.hpp"
 
 namespace c_g_test{
     void draw(){
         for(int i = 0; i < 96; i += 1){
             int x = _display_size_x / 2 - 64 + (i % 16) * 8;
-            int y = _display_size_y / 2 - 24 + (i / 16) * 8 - 64;
+            int y = _display_size_y / 2 - 24 + (i / 16) * 8 - 64 + 12;
             palcolor(COLOR_BLACK);
             tvvt::put_ascii_graphic((char)(i + 32), x, y);
         }

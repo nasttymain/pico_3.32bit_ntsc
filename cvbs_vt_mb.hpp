@@ -1,8 +1,11 @@
-#ifndef __NASTTY_RCA_TVVT_MB__
-#define __NASTTY_RCA_TVVT_MB__
-#include "rca.hpp"
+#ifndef __NASTTY_CVBS_TVVT_MB__
+#define __NASTTY_CVBS_TVVT_MB__
+#include "cvbs.hpp"
+#include <cstdint>
 
 #include "stdlib.h"
+
+typedef unsigned int uint;
 
 namespace tvvt{
     extern uint16_t CCOLUMNS;
@@ -3296,7 +3299,7 @@ namespace tvvt{
             }
             
         }
-        // rcavt、何にも合致しなければ置換文字
+        // cvbsvt、何にも合致しなければ置換文字
         box(base_x + 1, base_y + 0, base_x + 6, base_y + 7);
         cpos += 1;
         

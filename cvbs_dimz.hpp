@@ -1,7 +1,7 @@
-#include "rca.hpp"
+#include "cvbs.hpp"
 
-#ifndef __NASTTY_RCA_DIMZ__
-#define __NASTTY_RCA_DIMZ__
+#ifndef __NASTTY_CVBS_DIMZ__
+#define __NASTTY_CVBS_DIMZ__
 
 #include <cstdint>
 #include <cmath>
