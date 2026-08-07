@@ -40,16 +40,16 @@ volatile uint32_t frame = 0;
 // もともとのコードでは 2bit だったが、今回から 4bit (同期信号のほかに 3bit 分の信号がある。モノクロなら 8 階調分)
 // 色数は (有彩色 12 + 無彩色 1) x 4 = 52 色。なんとやり方がファミコンといっしょでびっくり!
 // でも、DAC の階調が少ない関係で輝度 100% ではカラーバーストの波形を正しく現せず、実際はもう少し少ない。
-uint8_t linebuf_a[LINEBUF_LEN] __attribute__((aligned(4)));
-uint8_t linebuf_b[LINEBUF_LEN] __attribute__((aligned(4)));
+alignas(4) uint8_t linebuf_a[LINEBUF_LEN];
+alignas(4) uint8_t linebuf_b[LINEBUF_LEN];
 uint8_t* ptr_linebuf[2] = {linebuf_a, linebuf_b};
-uint8_t linebuf_vblank[LINEBUF_LEN] __attribute__((aligned(4)));
-uint8_t linebuf_vsync[LINEBUF_LEN] __attribute__((aligned(4)));
+alignas(4) uint8_t linebuf_vblank[LINEBUF_LEN];
+alignas(4) uint8_t linebuf_vsync[LINEBUF_LEN];
 uint8_t* ptr_linebuf_vsync = &linebuf_vsync[0];
 
 
 constexpr const size_t FRAMEBUF_MEM_SIZE = 192 * DISP_RES_Y;
-uint8_t framebuf[FRAMEBUF_MEM_SIZE * 2] __attribute__((aligned(4)));
+alignas(4) uint8_t framebuf[FRAMEBUF_MEM_SIZE * 2];
 
 
 uint32_t flip_offset = 0;
