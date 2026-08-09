@@ -28,11 +28,12 @@
 // .program main
 //     pull
 //     out pins, 4
-int dma_chan[2];
+int cvbs_dma_chan[2];
 
 
 // 画面モードに関する変数
 uint16_t color_mode = SCREEN_PALETTE;
+uint8_t ginfo_paluse = 1;
 int8_t drawing_x_offset = 8;
 
 volatile uint16_t lineno = 0;
@@ -58,9 +59,9 @@ uint32_t flip_draw_offset = 0;
 volatile uint8_t flip_mode = 0;
 
 
-PIO pio = pio0;
-uint sm;
-dma_channel_config dc;
+PIO cbvs_pio = pio0;
+uint cvbs_sm;
+dma_channel_config cvbs_dc;
 uint8_t current_color = 1;
 
 
@@ -115,8 +116,8 @@ uint8_t flip = 0;
 volatile uint8_t* ptr_next_dma_buf = linebuf_vblank;
 void __not_in_flash_func(hndirq0)(void){
     
-    dma_hw->ints0 = 1u << dma_chan[flip];
-    dma_channel_abort(dma_chan[flip]);
+    dma_hw->ints0 = 1u << cvbs_dma_chan[flip];
+    dma_channel_abort(cvbs_dma_chan[flip]);
 
     #ifdef NASTTY_CVBS_DEBUG_OUT
         gpio_put(NASTTY_CVBS_DEBUG_PIN, 1);
@@ -215,7 +216,7 @@ void __not_in_flash_func(hndirq0)(void){
         //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
     }
     
-    dma_channel_set_read_addr(dma_chan[prev_flip], ptr_next_dma_buf, false);
+    dma_channel_set_read_addr(cvbs_dma_chan[prev_flip], ptr_next_dma_buf, false);
     // END-- Next DMA Settings
     
     #ifdef NASTTY_CVBS_DEBUG_OUT
@@ -483,59 +484,59 @@ void init_dma(){
     // PIO の設定
     set_sys_clock_khz(157500, true);
     
-    uint offset = pio_add_program(pio, &main_program);
-    sm = pio_claim_unused_sm(pio, true);
-    main_program_init(pio, sm, offset, START_PIN);
+    uint offset = pio_add_program(cbvs_pio, &main_program);
+    cvbs_sm = pio_claim_unused_sm(cbvs_pio, true);
+    main_program_init(cbvs_pio, cvbs_sm, offset, START_PIN);
     // システムクロックを 157.5MHz で動かし、PIO はその 1/11 で動かうす。157.5MHz / 44 = 3579545.45...Hz なので、4サンプルで 1ピクセルというわけだ。
-    pio_sm_set_clkdiv(pio, sm, 11);
-    pio_sm_set_enabled(pio, sm, true);
+    pio_sm_set_clkdiv(cbvs_pio, cvbs_sm, 11);
+    pio_sm_set_enabled(cbvs_pio, cvbs_sm, true);
     
     // DMA の設定
     for(uint i = 0; i < 2; i += 1){
-        dma_chan[i] = dma_claim_unused_channel(true);
+        cvbs_dma_chan[i] = dma_claim_unused_channel(true);
     }
     
     // for channel normal
-    dc = dma_channel_get_default_config(dma_chan[0]);
-    channel_config_set_transfer_data_size(&dc, DMA_SIZE_8);
-    channel_config_set_dreq(&dc, pio_get_dreq(pio, sm, true));
-    channel_config_set_read_increment(&dc, true);
-    channel_config_set_write_increment(&dc, false);
-    channel_config_set_high_priority(&dc, true);
-    channel_config_set_chain_to(&dc, dma_chan[1]);
+    cvbs_dc = dma_channel_get_default_config(cvbs_dma_chan[0]);
+    channel_config_set_transfer_data_size(&cvbs_dc, DMA_SIZE_8);
+    channel_config_set_dreq(&cvbs_dc, pio_get_dreq(cbvs_pio, cvbs_sm, true));
+    channel_config_set_read_increment(&cvbs_dc, true);
+    channel_config_set_write_increment(&cvbs_dc, false);
+    channel_config_set_high_priority(&cvbs_dc, true);
+    channel_config_set_chain_to(&cvbs_dc, cvbs_dma_chan[1]);
     dma_channel_configure(
-        dma_chan[0],
-        &dc,
-        &pio->txf[sm],
+        cvbs_dma_chan[0],
+        &cvbs_dc,
+        &cbvs_pio->txf[cvbs_sm],
         linebuf_a,
         LINEBUF_LEN,
         false
     );
-    dma_channel_set_irq0_enabled(dma_chan[0], true);
+    dma_channel_set_irq0_enabled(cvbs_dma_chan[0], true);
     
     // for channel flip
-    dc = dma_channel_get_default_config(dma_chan[1]);
-    channel_config_set_transfer_data_size(&dc, DMA_SIZE_8);
-    channel_config_set_dreq(&dc, pio_get_dreq(pio, sm, true));
-    channel_config_set_read_increment(&dc, true);
-    channel_config_set_write_increment(&dc, false);
-    channel_config_set_high_priority(&dc, true);
-    channel_config_set_chain_to(&dc, dma_chan[0]);
+    cvbs_dc = dma_channel_get_default_config(cvbs_dma_chan[1]);
+    channel_config_set_transfer_data_size(&cvbs_dc, DMA_SIZE_8);
+    channel_config_set_dreq(&cvbs_dc, pio_get_dreq(cbvs_pio, cvbs_sm, true));
+    channel_config_set_read_increment(&cvbs_dc, true);
+    channel_config_set_write_increment(&cvbs_dc, false);
+    channel_config_set_high_priority(&cvbs_dc, true);
+    channel_config_set_chain_to(&cvbs_dc, cvbs_dma_chan[0]);
     dma_channel_configure(
-        dma_chan[1],
-        &dc,
-        &pio->txf[sm],
+        cvbs_dma_chan[1],
+        &cvbs_dc,
+        &cbvs_pio->txf[cvbs_sm],
         linebuf_a,
         LINEBUF_LEN,
         false
     );
-    dma_channel_set_irq0_enabled(dma_chan[1], true);
+    dma_channel_set_irq0_enabled(cvbs_dma_chan[1], true);
     
     irq_set_exclusive_handler(DMA_IRQ_0, hndirq0);
     
     irq_set_priority(DMA_IRQ_0, 0x00);
     irq_set_enabled(DMA_IRQ_0, true);
-    dma_channel_start(dma_chan[0]);
+    dma_channel_start(cvbs_dma_chan[0]);
     
     #ifdef NASTTY_CVBS_DEBUG_OUT
         gpio_init(NASTTY_CVBS_DEBUG_PIN);
