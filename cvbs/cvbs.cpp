@@ -413,7 +413,7 @@ void init_framedata(){
             linebuf_vsync[i] = 0b00000000;
         }else{// 79...
             // active video
-            linebuf_vblank[i] = 0b00100001;
+            linebuf_vblank[i] = 0b00010001;
             linebuf_vsync[i] = 0b00000000;
             linebuf_a[i] = 0b00010001;
             linebuf_b[i] = 0b00010001;
