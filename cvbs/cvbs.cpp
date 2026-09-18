@@ -126,10 +126,10 @@ void __not_in_flash_func(hndirq0)(void){
     const auto prev_flip = flip; 
     flip = (flip + 1) & 1;
            
-    if(lineno > (20 - 1) && lineno <= 20 + 240){
+    if(lineno >= (20 - 1) && lineno < (20 - 1) + 240){
         // 次の flip に対して書込処理を行う
         constexpr const uint_fast16_t xindex_base = 79;
-        const uint_fast16_t linenum = (lineno - 20);
+        const uint_fast16_t linenum = (lineno - (20 - 1));
         const uint_fast32_t lineoffset = (linenum << 7) + (linenum << 6);
         // 映像として有効な x 方向のlinebufの添字は、79～454(455は捨てる)の376バイト、188ピクセル。
         
@@ -193,20 +193,21 @@ void __not_in_flash_func(hndirq0)(void){
     //   3 Before Porch 
     //   3 Vsync
     //  14 After Porch
-    // 242 Video (front 8 + back 2 lines are inactive)
-    if(lineno <= 3){
+    // 240 video
+    //   2 blank
+    if(lineno < 3){
         //   3 Before Porch
         ptr_next_dma_buf = linebuf_vblank;
         //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
-    }else if(lineno <= 6){
+    }else if(lineno < 6){
         //   3 Vsync
         ptr_next_dma_buf = ptr_linebuf_vsync;
         //dma_channel_set_read_addr(dma_chan, ptr_linebuf_vsync, false);
-    }else if(lineno <= 20){
+    }else if(lineno < 20){
         //  14 After Porch
         ptr_next_dma_buf =linebuf_vblank;
         //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
-    }else if(lineno <= 20 + 240){
+    }else if(lineno < 20 + 240){
         // 240 Video
         ptr_next_dma_buf = ptr_linebuf[flip];
         //dma_channel_set_read_addr(dma_chan, ptr_linebuf[flip], false);
