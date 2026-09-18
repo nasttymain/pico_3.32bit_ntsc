@@ -126,7 +126,7 @@ void __not_in_flash_func(hndirq0)(void){
     const auto prev_flip = flip; 
     flip = (flip + 1) & 1;
            
-    if(lineno >= (20 - 1) && lineno < (20 - 1) + 240){
+    if(lineno >= (20 - 1) && lineno < (20 - 1) + VIEWPORT_RES_Y){
         // 次の flip に対して書込処理を行う
         constexpr const uint_fast16_t xindex_base = 79;
         const uint_fast16_t linenum = (lineno - (20 - 1));
@@ -207,7 +207,7 @@ void __not_in_flash_func(hndirq0)(void){
         //  14 After Porch
         ptr_next_dma_buf =linebuf_vblank;
         //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
-    }else if(lineno < 20 + 240){
+    }else if(lineno < 20 + VIEWPORT_RES_Y){
         // 240 Video
         ptr_next_dma_buf = ptr_linebuf[flip];
         //dma_channel_set_read_addr(dma_chan, ptr_linebuf[flip], false);
