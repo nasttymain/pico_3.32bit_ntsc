@@ -144,7 +144,7 @@ namespace videowrite{
         auto px = ::ginfo_cx;
         auto py = ::ginfo_cy;
         ::ginfo_mesx = 0;
-        ::ginfo_mesy = fontsize_y;
+        ::ginfo_mesy = 0;
         unsigned char prevc = 0;
         unsigned char c = 0;
         mbbufi = 0;
@@ -206,7 +206,7 @@ namespace videowrite{
         if(::ginfo_mesx < (px - ::ginfo_cx)){
             ::ginfo_mesx = px - ::ginfo_cx;
         }
-        ::ginfo_mesy = py - ::ginfo_cy;
+        ::ginfo_mesy = py - ::ginfo_cy + fontsize_y;
         
         if(mode_switch & 1){
             ::ginfo_cx = px;
