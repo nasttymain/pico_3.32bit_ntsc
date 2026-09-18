@@ -2,7 +2,7 @@
 #define __NASTTY_CVBS_FPS__
 
 #include "cvbs.hpp"
-#include "cvbs_vt.hpp"
+#include "cvbs_write.hpp"
 #include "pico/time.h"
 #include "pico/stdio.h"
 
@@ -28,8 +28,8 @@ namespace fps{
         char s[12];
         snprintf(s, 11, "%4u.%.1u FPS", fps10 / 10, fps10 % 10);
         
-        tvvt::pos(35, 0);
-        tvvt::puts(s);
+        pos(280, 8);
+        mes(s);
     }
 }
 

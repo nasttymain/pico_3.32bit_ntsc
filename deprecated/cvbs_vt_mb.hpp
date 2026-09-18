@@ -5,7 +5,9 @@
 
 #include "stdlib.h"
 
+#ifndef uint
 typedef unsigned int uint;
+#endif
 
 namespace tvvt{
     extern uint16_t CCOLUMNS;

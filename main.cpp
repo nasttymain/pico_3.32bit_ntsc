@@ -2,8 +2,7 @@
 
 #include <stdio.h>
 #include "cvbs.hpp"
-#include "cvbs_vt_mb.hpp"
-#include "cvbs_vt.hpp"
+#include "cvbs_write.hpp"
 #include "cvbs_dimz.hpp"
 #include "cvbs_bezier.hpp"
 #include "picopico_sound/picopico.hpp"
@@ -68,9 +67,14 @@ void draw_by_core1(){
         
         palcolor(COLOR_BLACK);
         
-        tvvt::pos(2, 2);
-        tvvt::puts("Hello, World! こんにちは世界!!コンニチハ!!\n");
-                
+        //tvvt::pos(2, 2);
+        //tvvt::puts("Hello, World! こんにちは世界!!コンニチハ!!\n");
+        pos(16, 16);
+        mes("Hello, World! こんにちは世界!!コンニチハ!!\nEI DAYO!");
+        char s[40];
+        snprintf(s, sizeof(s), "ginfo_mesx: %d ginfo_mesy: %d", ginfo_mesx, ginfo_mesy);
+        mes(s);
+        
         fps::draw_fps();
         
         wait_for_vsync();

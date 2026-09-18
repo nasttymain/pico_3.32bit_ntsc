@@ -1,5 +1,5 @@
 #include "cvbs.hpp"
-#include "cvbs_vt.hpp"
+#include "cvbs_write.hpp"
 
 namespace c_g_test{
     void draw(){
@@ -7,7 +7,9 @@ namespace c_g_test{
             int x = _display_size_x / 2 - 64 + (i % 16) * 8;
             int y = _display_size_y / 2 - 24 + (i / 16) * 8 - 64 + 12;
             palcolor(COLOR_BLACK);
-            tvvt::put_ascii_graphic((char)(i + 32), x, y);
+            pos(x, y);
+            const char s[2] = {(char)(i + 32), 0};
+            mes(s);
         }
         const int left = _display_size_x / 2 - 128;
         const int top = _display_size_y / 2;
