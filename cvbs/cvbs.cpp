@@ -68,6 +68,33 @@ uint8_t current_color = 1;
 int16_t ginfo_cx = 0;
 int16_t ginfo_cy = 0;
 
+// ポインタ
+volatile bool video_pointer_appear = true;
+volatile uint video_pointer_en = 1;
+volatile uint video_pointer_line = 20 + 120;
+volatile uint video_pointer_column = 180;
+uint8_t video_pointer_pattern[64] = {
+      17,  17,  17, 128, 128, 128, 128, 128,
+      17, 127, 127,  17,  17,  17, 128, 128,
+      17, 127, 127, 127, 127,  17,  17,  17,
+     128,  17, 127, 127, 127, 127,  17, 128,
+     128,  17, 127, 127, 127,  17, 128, 128,
+     128,  17,  17, 127,  17, 128, 128, 128,
+     128, 128,  17,  17, 128, 128, 128, 128,
+     128, 128,  17, 128, 128, 128, 128, 128,
+};
+void video_pointer_set(int16_t x, int16_t y){
+    if(x >= DISP_RES_X){
+        return;
+    }
+    if(y >= DISP_RES_Y){
+        return;
+    }
+    video_pointer_line = 20 + y;
+    video_pointer_column = x + drawing_x_offset;
+    video_pointer_appear = true;
+}
+
 // いや 3 周してる!!!!!!!!! (いちおう、if を減らしたほうが性能上がるんじゃいかな～みたいな淡い期待がある)
 __not_in_flash("") const int8_t sin12[36] = {
      0,  1,  2,
@@ -182,6 +209,21 @@ void __not_in_flash_func(hndirq0)(void){
                 linebufptr += 1;
             }
             // END LINE_DATA_CONSTRUCT WHEN SCREEN_PALETTE
+        }
+        // pointer
+        if(video_pointer_appear){
+            if(video_pointer_line <= lineno && lineno <= video_pointer_line + 7){
+                uint8_t* linebufptr  = &ptr_linebuf[flip][xindex_base + video_pointer_column];
+                uint8_t* ptnptr = &video_pointer_pattern[(lineno - video_pointer_line) * 8];
+                for(uint i = 0; i < 8; i += 1){
+                    if( ! ((*ptnptr) & 128)){
+                        *linebufptr = *ptnptr;
+                    }
+                    linebufptr += 1;
+                    ptnptr += 1;
+                }
+
+            }
         }
     }
     

@@ -31,6 +31,8 @@ void do_flip();
 void vsync_mode(uint8_t mode);
 void core1_main();
 void init_video_on_core1();
+void video_pointer_set(int16_t x, int16_t y);
+
 
 extern uint16_t color_mode;
 extern volatile uint16_t lineno;

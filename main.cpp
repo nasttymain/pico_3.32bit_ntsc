@@ -55,11 +55,17 @@ int main() {
 
 void draw_by_core1(){
     uint f = 0;
+    float mx = DISP_RES_X / 2;
+    float my = DISP_RES_Y / 2;
     while(1){
         f += 1;
         
         clrgraph(1);
         palcolor(COLOR_BLACK);
+        
+        mx += sinf((float)(f % 720) / 360 * M_PI);
+        my += cosf((float)(f % 720) / 360 * M_PI);
+        video_pointer_set((int16_t)mx, (int16_t)my);
         
         c_g_test::draw();
         
