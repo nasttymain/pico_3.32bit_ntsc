@@ -91,12 +91,11 @@ constexpr const uint16_t LINEBUF_LEN = LEN_LINE_LENGTH / 2;
 
 
 // X 方向に 360 pixel。縦は 232 ラインを使う
-constexpr const uint16_t DISP_RES_X = (LEN_ACTIVE_VIDEO) / 4;
-constexpr const uint16_t DISP_RES_X_GRAYSCALE = LEN_ACTIVE_VIDEO / 2;
+constexpr const uint16_t DISP_RES_X = VIEWPORT_RES_X;
 constexpr const uint16_t DISP_RES_Y = VIEWPORT_RES_Y;
 
-constexpr const uint16_t _display_size_x = 360;
-constexpr const uint16_t _display_size_y = DISP_RES_Y;
+constexpr const uint16_t _display_size_x = VIEWPORT_RES_X;
+constexpr const uint16_t _display_size_y = VIEWPORT_RES_Y;
 
 
 #endif // __NASTTY_CVBS_PIO__
