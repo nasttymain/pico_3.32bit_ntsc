@@ -1,6 +1,6 @@
 ## pico 3.32bit NTSC
 本リポジトリは、RP2040/2350 から、PIOと抵抗DACを用いてNTSCベースバンド信号を出力するプロジェクトです。
-解像度360x232で、約50色のカラーグラフィックを表示できます。
+解像度360x240で、約50色のカラーグラフィックを表示できます。
 
 ## Gallery
 ![demo screen](docs/pico_cvbs_basic_demo.png)

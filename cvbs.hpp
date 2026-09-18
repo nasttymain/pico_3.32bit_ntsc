@@ -75,7 +75,7 @@ extern uint8_t flip;
 
 
 #define VIEWPORT_RES_X 360
-#define VIEWPORT_RES_Y 232
+#define VIEWPORT_RES_Y 240
 
 
 // タイミング一覧
@@ -90,7 +90,7 @@ constexpr const uint16_t LEN_LINE_LENGTH            = LEN_FRONT_PORCH + LEN_SYNC
 constexpr const uint16_t LINEBUF_LEN = LEN_LINE_LENGTH / 2;
 
 
-// X 方向に 360 pixel。縦は 232 ラインを使う
+// X 方向に 360 pixel。縦は 240 ラインを使う
 constexpr const uint16_t DISP_RES_X = VIEWPORT_RES_X;
 constexpr const uint16_t DISP_RES_Y = VIEWPORT_RES_Y;
 
