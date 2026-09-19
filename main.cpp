@@ -75,10 +75,14 @@ void draw_by_core1(){
         
         //tvvt::pos(2, 2);
         //tvvt::puts("Hello, World! こんにちは世界!!コンニチハ!!\n");
+        palcolor(COLOR_BLACK);
         pos(16, 16);
         mes("Hello, World! こんにちは世界!!コンニチハ!!\nEI DAYO!");
+        palcolor(COLOR_LIGHTGRAY);
+        box(16, 16, 16 + ginfo_mesx, 16 + ginfo_mesy);
         char s[40];
         snprintf(s, sizeof(s), "ginfo_mesx: %d ginfo_mesy: %d", ginfo_mesx, ginfo_mesy);
+        palcolor(COLOR_BLACK);
         mes(s);
         
         fps::draw_fps();
