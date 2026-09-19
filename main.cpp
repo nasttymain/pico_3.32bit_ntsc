@@ -39,7 +39,7 @@ int main() {
     sprite_ei.palette[2] = COLOR_WHITE;
     sprite_ei.palette[3] = COLOR_LIGHTGRAY;
     sprite_ei.xpos = 48;
-    sprite_ei.ypos = 48;
+    sprite_ei.ypos = 80;
     sprite_ei.xsize = 16;
     sprite_ei.ysize = 24;
 
