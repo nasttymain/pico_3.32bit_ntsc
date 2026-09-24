@@ -17,6 +17,7 @@
 #include "pico/time.h"
 #include "pico/multicore.h"
 #include "hardware/structs/bus_ctrl.h"
+#include "pico/mutex.h"
 
 #ifndef START_PIN
     #define START_PIN 16
@@ -59,7 +60,7 @@ uint32_t flip_draw_offset = 0;
 volatile uint8_t flip_mode = 0;
 
 
-PIO cbvs_pio = pio0;
+PIO cbvs_pio = pio2;
 uint cvbs_sm;
 dma_channel_config cvbs_dc;
 uint8_t current_color = 1;
@@ -69,10 +70,10 @@ int16_t ginfo_cx = 0;
 int16_t ginfo_cy = 0;
 
 // ポインタ
-volatile bool video_pointer_appear = true;
-volatile uint video_pointer_en = 1;
+volatile bool video_pointer_appear = false;
 volatile uint video_pointer_line = 20 + 120;
 volatile uint video_pointer_column = 180;
+mutex_t video_pointer_mutex;
 uint8_t video_pointer_pattern[64] = {
       17,  17,  17, 128, 128, 128, 128, 128,
       17, 127, 127,  17,  17,  17, 128, 128,
@@ -83,16 +84,15 @@ uint8_t video_pointer_pattern[64] = {
      128, 128,  17,  17, 128, 128, 128, 128,
      128, 128,  17, 128, 128, 128, 128, 128,
 };
-void video_pointer_set(int16_t x, int16_t y){
-    if(x >= DISP_RES_X){
-        return;
-    }
-    if(y >= DISP_RES_Y){
+void video_pointer_set(int16_t x, int16_t y, bool appear){
+    mutex_enter_blocking(&video_pointer_mutex);
+    if(x >= DISP_RES_X || y >= DISP_RES_Y){
         return;
     }
     video_pointer_line = 20 + y;
     video_pointer_column = x + drawing_x_offset;
-    video_pointer_appear = true;
+    video_pointer_appear = appear;
+    mutex_exit(&video_pointer_mutex);
 }
 
 // いや 3 周してる!!!!!!!!! (いちおう、if を減らしたほうが性能上がるんじゃいかな～みたいな淡い期待がある)
@@ -142,6 +142,9 @@ volatile fptr_void_void_t core1_loop = nullptr;
 uint8_t flip = 0;
 volatile uint8_t* ptr_next_dma_buf = linebuf_vblank;
 void __not_in_flash_func(hndirq0)(void){
+    static uint vp_line = 0;
+    static uint vp_col = 0;
+    static bool vp_en = false;
     
     dma_hw->ints0 = 1u << cvbs_dma_chan[flip];
     dma_channel_abort(cvbs_dma_chan[flip]);
@@ -149,6 +152,13 @@ void __not_in_flash_func(hndirq0)(void){
     #ifdef NASTTY_CVBS_DEBUG_OUT
         gpio_put(NASTTY_CVBS_DEBUG_PIN, 1);
     #endif
+    
+    // マウスポインターだけは(座標値に)syncをかける。誤った場所に表示される・誤って表示される可能性こそあれどOFを起こしたり分裂したりすることは、最低限ない
+    if(lineno == 20){
+        vp_line = video_pointer_line;
+        vp_col  = video_pointer_column;
+        vp_en   = video_pointer_appear;
+    }
     
     const auto prev_flip = flip; 
     flip = (flip + 1) & 1;
@@ -211,10 +221,10 @@ void __not_in_flash_func(hndirq0)(void){
             // END LINE_DATA_CONSTRUCT WHEN SCREEN_PALETTE
         }
         // pointer
-        if(video_pointer_appear){
-            if(video_pointer_line <= lineno && lineno <= video_pointer_line + 7){
-                uint8_t* linebufptr  = &ptr_linebuf[flip][xindex_base + video_pointer_column];
-                uint8_t* ptnptr = &video_pointer_pattern[(lineno - video_pointer_line) * 8];
+        if(vp_en){
+            if(vp_line <= lineno && lineno <= vp_line + 7){
+                uint8_t* linebufptr  = &ptr_linebuf[flip][xindex_base + vp_col];
+                uint8_t* ptnptr = &video_pointer_pattern[(lineno - vp_line) * 8];
                 for(uint i = 0; i < 8; i += 1){
                     if( ! ((*ptnptr) & 128)){
                         *linebufptr = *ptnptr;
@@ -591,6 +601,9 @@ void init_dma(){
         gpio_init(NASTTY_CVBS_DEBUG_PIN);
         gpio_set_dir(NASTTY_CVBS_DEBUG_PIN, GPIO_OUT);
     #endif
+    
+    // mutex の設定
+    mutex_init(&video_pointer_mutex);
 }
 
 
