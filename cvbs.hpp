@@ -84,9 +84,9 @@ extern uint8_t flip;
 constexpr const uint16_t LEN_FRONT_PORCH            = 21;
 constexpr const uint16_t LEN_SYNC_PULSE             = 67;
 constexpr const uint16_t LEN_BACK_PORCH             = 68;
-constexpr const uint16_t LEN_ACTIVE_VIDEO           = 756;
+constexpr const uint16_t LEN_ACTIVE_VIDEO           = 754; // was 756
 constexpr const uint16_t LEN_BEFORE_ACTIVE_VIDEO    = LEN_FRONT_PORCH + LEN_SYNC_PULSE + LEN_BACK_PORCH; //156
-constexpr const uint16_t LEN_LINE_LENGTH            = LEN_FRONT_PORCH + LEN_SYNC_PULSE + LEN_BACK_PORCH + LEN_ACTIVE_VIDEO; // 912
+constexpr const uint16_t LEN_LINE_LENGTH            = LEN_FRONT_PORCH + LEN_SYNC_PULSE + LEN_BACK_PORCH + LEN_ACTIVE_VIDEO; // 910
 
 
 constexpr const uint16_t LINEBUF_LEN = LEN_LINE_LENGTH / 2;

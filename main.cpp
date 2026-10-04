@@ -72,10 +72,6 @@ void draw_by_core1(){
         sprite_ei.draw();
         
         palcolor(COLOR_BLACK);
-        
-        //tvvt::pos(2, 2);
-        //tvvt::puts("Hello, World! こんにちは世界!!コンニチハ!!\n");
-        palcolor(COLOR_BLACK);
         pos(16, 16);
         mes("Hello, World! こんにちは世界!!コンニチハ!!\nEI DAYO!");
         palcolor(COLOR_LIGHTGRAY);

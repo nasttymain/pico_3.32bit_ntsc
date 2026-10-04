@@ -45,8 +45,10 @@ volatile uint32_t frame = 0;
 alignas(4) uint8_t linebuf_a[LINEBUF_LEN];
 alignas(4) uint8_t linebuf_b[LINEBUF_LEN];
 uint8_t* ptr_linebuf[2] = {linebuf_a, linebuf_b};
-alignas(4) uint8_t linebuf_vblank[LINEBUF_LEN];
+alignas(4) uint8_t linebuf_vblank_a[LINEBUF_LEN];
+alignas(4) uint8_t linebuf_vblank_b[LINEBUF_LEN];
 alignas(4) uint8_t linebuf_vsync[LINEBUF_LEN];
+uint8_t* ptr_linebuf_vblank[2] = {linebuf_vblank_a, linebuf_vblank_b};
 uint8_t* ptr_linebuf_vsync = &linebuf_vsync[0];
 
 
@@ -96,7 +98,12 @@ void video_pointer_set(int16_t x, int16_t y, bool appear){
 }
 
 // いや 3 周してる!!!!!!!!! (いちおう、if を減らしたほうが性能上がるんじゃいかな～みたいな淡い期待がある)
-__not_in_flash("") const int8_t sin12[36] = {
+__not_in_flash("") const int8_t sin12[48] = {
+     0,  1,  2,
+     2,  2,  1,
+     0, -1, -2,
+    -2, -2, -1,
+    
      0,  1,  2,
      2,  2,  1,
      0, -1, -2,
@@ -140,7 +147,7 @@ volatile fptr_void_void_t core1_loop = nullptr;
 
 
 uint8_t flip = 0;
-volatile uint8_t* ptr_next_dma_buf = linebuf_vblank;
+volatile uint8_t* ptr_next_dma_buf = ptr_linebuf_vblank[0];
 void __not_in_flash_func(hndirq0)(void){
     static uint vp_line = 0;
     static uint vp_col = 0;
@@ -208,10 +215,10 @@ void __not_in_flash_func(hndirq0)(void){
                 const uint_fast8_t pxcolorvalue = (pxcolorphase < 12);
 
                 const uint_fast8_t subpx[4] = {
-                    amp2out[(pxvalue[0] << 1) + sin12[(pxcolorphase) + 0] * pxcolorvalue + AMPINDEX_0IRE],
-                    amp2out[(pxvalue[0] << 1) + sin12[(pxcolorphase) + 3] * pxcolorvalue + AMPINDEX_0IRE],
-                    amp2out[(pxvalue[1] << 1) + sin12[(pxcolorphase) + 6] * pxcolorvalue + AMPINDEX_0IRE],
-                    amp2out[(pxvalue[1] << 1) + sin12[(pxcolorphase) + 9] * pxcolorvalue + AMPINDEX_0IRE]
+                    amp2out[(pxvalue[0] << 1) + sin12[(pxcolorphase) + 0 + (flip  * 6)] * pxcolorvalue + AMPINDEX_0IRE],
+                    amp2out[(pxvalue[0] << 1) + sin12[(pxcolorphase) + 3 + (flip  * 6)] * pxcolorvalue + AMPINDEX_0IRE],
+                    amp2out[(pxvalue[1] << 1) + sin12[(pxcolorphase) + 6 + (flip  * 6)] * pxcolorvalue + AMPINDEX_0IRE],
+                    amp2out[(pxvalue[1] << 1) + sin12[(pxcolorphase) + 9 + (flip  * 6)] * pxcolorvalue + AMPINDEX_0IRE]
                 };
                 *linebufptr = (subpx[0] << 4) + (subpx[1]);
                 linebufptr += 1;
@@ -249,24 +256,24 @@ void __not_in_flash_func(hndirq0)(void){
     //   2 blank
     if(lineno < 3){
         //   3 Before Porch
-        ptr_next_dma_buf = linebuf_vblank;
-        //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
+        ptr_next_dma_buf = ptr_linebuf_vblank[flip];
+        //dma_channel_set_read_addr(dma_chan, linebuf_vblank_a, false);
     }else if(lineno < 6){
         //   3 Vsync
         ptr_next_dma_buf = ptr_linebuf_vsync;
         //dma_channel_set_read_addr(dma_chan, ptr_linebuf_vsync, false);
     }else if(lineno < 20){
         //  14 After Porch
-        ptr_next_dma_buf =linebuf_vblank;
-        //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
+        ptr_next_dma_buf =ptr_linebuf_vblank[flip];
+        //dma_channel_set_read_addr(dma_chan, linebuf_vblank_a, false);
     }else if(lineno < 20 + VIEWPORT_RES_Y){
         // 240 Video
         ptr_next_dma_buf = ptr_linebuf[flip];
         //dma_channel_set_read_addr(dma_chan, ptr_linebuf[flip], false);
     }else{
         //  2 after video
-        ptr_next_dma_buf =linebuf_vblank;
-        //dma_channel_set_read_addr(dma_chan, linebuf_vblank, false);
+        ptr_next_dma_buf =ptr_linebuf_vblank[flip];
+        //dma_channel_set_read_addr(dma_chan, linebuf_vblank_a, false);
     }
     
     dma_channel_set_read_addr(cvbs_dma_chan[prev_flip], ptr_next_dma_buf, false);
@@ -412,32 +419,37 @@ void init_framedata(){
             // front porch
             linebuf_a[i] = 0b00010001;
             linebuf_b[i] = 0b00010001;
-            linebuf_vblank[i] = 0b00010001;
+            linebuf_vblank_a[i] = 0b00010001;
+            linebuf_vblank_b[i] = 0b00010001;
             linebuf_vsync[i] = 0b00010001;
         }else if(i == 10){
             // front porch + hsync
             linebuf_a[i] = 0b00010000;
             linebuf_b[i] = 0b00010000;
-            linebuf_vblank[i] = 0b00010000;
+            linebuf_vblank_a[i] = 0b00010000;
+            linebuf_vblank_b[i] = 0b00010000;
             linebuf_vsync[i] = 0b00000000;
         }else if(i <= 44){
             // hsync
             linebuf_a[i] = 0b00000000;
             linebuf_b[i] = 0b00000000;
-            linebuf_vblank[i] = 0b00000000;
+            linebuf_vblank_a[i] = 0b00000000;
+            linebuf_vblank_b[i] = 0b00000000;
             linebuf_vsync[i] = 0b00000000;
-        }else if(i <= 48){
+        }else if(i <= /*48*/67){
             // back porch(before burst)
             linebuf_a[i] = 0b00010001;
             linebuf_b[i] = 0b00010001;
-            linebuf_vblank[i] = 0b00010001;
+            linebuf_vblank_a[i] = 0b00010001;
+            linebuf_vblank_b[i] = 0b00010001;
             linebuf_vsync[i] = 0b00000000;
         }else if(i == 49){
             // back porch(before burst) + COLOR BURST(真ん中スタートとする)
             // つまるところ、カラーバーストの0度位相は、奇数添字の後半要素。
             linebuf_a[i] = 0b00010001;
             linebuf_b[i] = 0b00010001;
-            linebuf_vblank[i] = 0b00010001;
+            linebuf_vblank_a[i] = 0b00010001;
+            linebuf_vblank_b[i] = 0b00010001;
             linebuf_vsync[i] = 0b00000000;
         }else if(i <= 67){
             linebuf_vsync[i] = 0b00000000;
@@ -445,39 +457,49 @@ void init_framedata(){
             // カラーバーストは、[0 1 0 -1]のような感じになる
             if((i & 1) == 0){// i % 2 == 0
                 linebuf_a[i] = 0b00110001;
-                linebuf_b[i] = 0b00110001;
-                linebuf_vblank[i] = 0b00110001;
+                linebuf_b[i] = 0b00100001;
+                linebuf_vblank_a[i] = 0b00110001;
+                linebuf_vblank_b[i] = 0b00100001;
             }else{
                 linebuf_a[i] = 0b00100001;
-                linebuf_b[i] = 0b00100001;
-                linebuf_vblank[i] = 0b00100001;
+                linebuf_b[i] = 0b00110001;
+                linebuf_vblank_a[i] = 0b00100001;
+                linebuf_vblank_b[i] = 0b00110001;
             }
         }else if(i == 68){
             // COLOR BURST + back porch(after burst)
             linebuf_a[i] = 0b00010001;
             linebuf_b[i] = 0b00010001;
-            linebuf_vblank[i] = 0b00010001;
+            linebuf_vblank_a[i] = 0b00010001;
+            linebuf_vblank_b[i] = 0b00010001;
             linebuf_vsync[i] = 0b00000000;
         }else if(i <= 78){
             // back porch(after burst)
             linebuf_a[i] = 0b00010001;
             linebuf_b[i] = 0b00010001;
-            linebuf_vblank[i] = 0b00010001;
+            linebuf_vblank_a[i] = 0b00010001;
+            linebuf_vblank_b[i] = 0b00010001;
             linebuf_vsync[i] = 0b00000000;
         }else if(i <= 431){
             // active video
-            linebuf_vblank[i] = 0b00010001;
+            linebuf_vblank_a[i] = 0b00010001;
+            linebuf_vblank_b[i] = 0b00010001;
             linebuf_vsync[i] = 0b00000000;
             linebuf_a[i] = 0b00010001;
             linebuf_b[i] = 0b00010001;
         }else{ // 432～455 (24) 
             // active video, or serration pulse(vsync)
-            linebuf_vblank[i] = 0b00010001;
+            linebuf_vblank_a[i] = 0b00010001;
+            linebuf_vblank_b[i] = 0b00010001;
             linebuf_vsync[i] = 0b00010001;
             linebuf_a[i] = 0b00010001;
             linebuf_b[i] = 0b00010001;
         }
     }
+    
+    // めんどいので
+    _restore_colorburst();
+    
     // END NTSCカラーの場合
 }
 
@@ -485,7 +507,8 @@ void _remove_colorburst(){
     for(uint_fast16_t i = 49; i < 69; i += 1){
         linebuf_a[i] = 0b00010001;
         linebuf_b[i] = 0b00010001;
-        linebuf_vblank[i] = 0b00010001;
+        linebuf_vblank_a[i] = 0b00010001;
+        linebuf_vblank_b[i] = 0b00010001;
     }
     
 }
@@ -496,26 +519,30 @@ void _restore_colorburst(){
         if(i == 49){
             // back porch(before burst) + COLOR BURST(真ん中スタートとする)
             // つまるところ、カラーバーストの0度位相は、奇数添字の後半要素。
-            linebuf_a[i] = 0b00010001;
-            linebuf_b[i] = 0b00010001;
-            linebuf_vblank[i] = 0b00010001;
+            linebuf_a[i] = 0b00'01'00'01;
+            linebuf_b[i] = 0b00'01'00'01;
+            linebuf_vblank_a[i] = 0b00'01'00'01;
+            linebuf_vblank_b[i] = 0b00'01'00'01;
         }else if(i <= 67){
             // COLOR BURST
             // カラーバーストは、[0 1 0 -1]のような感じになる
             if((i & 1) == 0){// i % 2 == 0
-                linebuf_a[i] = 0b00110001;
-                linebuf_b[i] = 0b00110001;
-                linebuf_vblank[i] = 0b00110001;
+                linebuf_a[i] = 0b00'11'00'01;
+                linebuf_b[i] = 0b00'10'00'01;
+                linebuf_vblank_a[i] = 0b00'11'00'01;
+                linebuf_vblank_b[i] = 0b00'10'00'01;
             }else{
-                linebuf_a[i] = 0b00100001;
-                linebuf_b[i] = 0b00100001;
-                linebuf_vblank[i] = 0b00100001;
+                linebuf_a[i] = 0b00'10'00'01;
+                linebuf_b[i] = 0b00'11'00'01;
+                linebuf_vblank_a[i] = 0b00'10'00'01;
+                linebuf_vblank_b[i] = 0b00'11'00'01;
             }
         }else if(i == 68){
             // COLOR BURST + back porch(after burst)
-            linebuf_a[i] = 0b00010001;
-            linebuf_b[i] = 0b00010001;
-            linebuf_vblank[i] = 0b00010001;
+            linebuf_a[i] = 0b00'01'00'01;
+            linebuf_b[i] = 0b00'01'00'01;
+            linebuf_vblank_a[i] = 0b00'01'00'01;
+            linebuf_vblank_b[i] = 0b00'01'00'01;
         }
     }
 }
@@ -877,7 +904,7 @@ void vsync_mode(uint8_t mode){
         ptr_linebuf_vsync = &linebuf_vsync[0];
     }
     if(mode == 1){
-        ptr_linebuf_vsync = &linebuf_vblank[0];
+        ptr_linebuf_vsync = &linebuf_vblank_a[0];
     }
 }
 
