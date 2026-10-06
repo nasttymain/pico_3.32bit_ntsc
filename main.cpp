@@ -75,7 +75,7 @@ void draw_by_core1(){
         palcolor(COLOR_LIGHTGRAY);
         box(16, 16, 16 + ginfo_mesx, 16 + ginfo_mesy);
         char s[40];
-        snprintf(s, sizeof(s), "ginfo_mesx: %d ginfo_mesy: %d", ginfo_mesx, ginfo_mesy);
+        snprintf(s, sizeof(s), "ginfo_mesx: %d ginfo_mesy: %d\nf %u", ginfo_mesx, ginfo_mesy, f);
         palcolor(COLOR_BLACK);
         mes(s);
         
@@ -84,8 +84,8 @@ void draw_by_core1(){
         wait_for_vsync();
         do_flip();
         
-        if(::frame % 300 == 0){
-            if((::frame / 300) % 2 == 0){
+        if(f % 300 == 0){
+            if((f / 300) % 2 == 0){
                 setDisplayMode(SCREEN_GRAYSCALE);
             }else{
                 setDisplayMode(SCREEN_FULLWIDTH_COLOR);

@@ -75,6 +75,7 @@ uint8_t video_pointer_pattern[64] = {
 void video_pointer_set(int16_t x, int16_t y, bool appear){
     mutex_enter_blocking(&video_pointer_mutex);
     if(x >= DISP_RES_X || y >= DISP_RES_Y){
+        mutex_exit(&video_pointer_mutex);
         return;
     }
     video_pointer_line = 20 + y;
