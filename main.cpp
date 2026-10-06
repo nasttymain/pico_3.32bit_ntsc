@@ -1,10 +1,10 @@
 //#define VIDEO_TEST_PTN_COLOR
 
 #include <stdio.h>
-#include "cvbs.hpp"
-#include "cvbs_extras/cvbs_dimz.hpp"
-#include "cvbs_extras/cvbs_sprite.hpp"
-#include "cvbs_extras/picopico_sound/picopico.hpp"
+#include <cvbs.hpp>
+#include <cvbs_extras/cvbs_dimz.hpp>
+#include <cvbs_extras/cvbs_sprite.hpp>
+#include <cvbs_extras/picopico_sound/picopico.hpp>
 #include "pico/time.h"
 
 #include "video_util/fps.hpp"
