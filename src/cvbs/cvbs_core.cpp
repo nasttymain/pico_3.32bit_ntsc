@@ -1,6 +1,6 @@
 #include "cvbs_core.hpp"
 
-#include "main.pio.h"
+#include "cvbs_output.pio.h"
 #include "hardware/dma.h"
 #include "hardware/structs/bus_ctrl.h"
 #include "pico/mutex.h"

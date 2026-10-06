@@ -11,7 +11,7 @@
 #include "hardware/pio.h"
 #include "hardware/timer.h"
 #include "hardware/dma.h"
-#include "main.pio.h"
+#include "cvbs_output.pio.h"
 #include "pico/stdlib.h"
 #include <cmath>
 #include <utility>

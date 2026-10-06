@@ -6,8 +6,6 @@
 #include "cvbs_extras/cvbs_sprite.hpp"
 #include "cvbs_extras/picopico_sound/picopico.hpp"
 #include "pico/time.h"
-#include "hardware/dma.h"
-#include "hardware/pwm.h"
 
 #include "video_util/fps.hpp"
 

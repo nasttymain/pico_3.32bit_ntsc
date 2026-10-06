@@ -7,5 +7,5 @@ fonts/
 没/
 没/*
 
-CMakeLists.txt
+/CMakeLists.txt
 pico_sdk_import.cmake
