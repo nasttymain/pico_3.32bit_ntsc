@@ -2,7 +2,6 @@
 #define __NASTTY_CVBS_FPS__
 
 #include "cvbs.hpp"
-#include "cvbs_write.hpp"
 #include "pico/time.h"
 #include "pico/stdio.h"
 

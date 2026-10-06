@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include "cvbs.hpp"
-#include "cvbs_write.hpp"
 #include "cvbs_dimz.hpp"
 #include "cvbs_bezier.hpp"
 #include "picopico_sound/picopico.hpp"

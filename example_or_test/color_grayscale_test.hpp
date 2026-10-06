@@ -1,5 +1,4 @@
 #include "cvbs.hpp"
-#include "cvbs_write.hpp"
 
 namespace c_g_test{
     void draw(){

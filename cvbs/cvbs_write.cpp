@@ -1,4 +1,6 @@
-#include "cvbs.hpp"
+#include "cvbs_core.hpp"
+#include "cvbs_draw.hpp"
+#include "cvbs_write.hpp"
 
 #ifndef __NASTTY_CVBS_WRITE__
 #define __NASTTY_CVBS_WRITE__
@@ -115,12 +117,6 @@ namespace videowrite{
     uint8_t mbbuf[4] = {0, 0, 0, 0};
     uint mbbufi = 0;
     
-    const uint fontsize_x = 8;
-    const uint fontsize_y = 8;
-    const uint8_t hori_tab_size = 2;
-    const uint8_t do_auto_cr = 1;
-
-
     inline void put_char_graphic(const uint8_t* cptr, int16_t xpos, int16_t ypos){
         for(int16_t x = 0; x < 8; x++){
             const uint8_t row = cptr[x];
@@ -140,7 +136,7 @@ namespace videowrite{
         inline void __put_mb_character(uint32_t code_point, int16_t px, int16_t py);
     #endif
     
-    void mes(const char* s, int mode_switch = 0){
+    void mes(const char* s, int mode_switch){
         auto px = ::ginfo_cx;
         auto py = ::ginfo_cy;
         ::ginfo_mesx = 0;
@@ -220,7 +216,7 @@ namespace videowrite{
 }; // videowrite
 
 #ifndef __NASTTY_CVBS_WRITE_NO_MB__
-    #include "cvbs_write_mb.hpp"
+    #include "cvbs_write_mb.cpp"
 #endif
 
 
