@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "cvbs.hpp"
 #include "cvbs_dimz.hpp"
-#include "cvbs_bezier.hpp"
 #include "picopico_sound/picopico.hpp"
 #include "pico/time.h"
 #include "hardware/dma.h"

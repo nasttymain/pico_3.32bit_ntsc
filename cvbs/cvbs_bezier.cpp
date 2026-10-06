@@ -1,18 +1,13 @@
-#include "cvbs.hpp"
+#include "cvbs_core.hpp"
+#include "cvbs_draw.hpp"
+#include "cvbs_bezier.hpp"
 
 #ifndef __NASTTY_CVBS_BEZIER__
 #define __NASTTY_CVBS_BEZIER__
 
+#include <cstdint>
+
 namespace tvbezier{
-    #include <cstdint>
-    typedef struct bezier_s{
-        int16_t x1;
-        int16_t y1;
-        int16_t xc;
-        int16_t yc;
-        int16_t x2;
-        int16_t y2;
-    } bezier_t;
     void bezier(int16_t x1, int16_t y1, int16_t xc, int16_t yc, int16_t x2, int16_t y2, uint16_t lines){
         const int_fast16_t _x1 = x1;
         const int_fast16_t _y1 = y1;
@@ -65,4 +60,4 @@ namespace tvbezier{
     }
 }
 
-#endif
+#endif//__NASTTY_CVBS_BEZIER__
