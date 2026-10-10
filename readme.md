@@ -3,8 +3,11 @@
 解像度360x240で、約50色のカラーグラフィックを表示できます。
 
 ## Gallery
-![demo screen](docs/pico_cvbs_basic_demo.png)
+![demo screen](docs/pico_cvbs_basic_demo.jpg)
 *demo screen*
+
+![demo screen](docs/pico_cvbs_font_demo.jpg)
+*font demo screen*
 
 ![lorem ipsum in monochrome mode](docs/monochrome_mode_lorem.png)
 *monochrome mode demo*
