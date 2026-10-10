@@ -4,14 +4,14 @@ namespace c_g_test{
     void draw(){
         for(int i = 0; i < 96; i += 1){
             int x = _display_size_x / 2 - 64 + (i % 16) * 8;
-            int y = _display_size_y / 2 - 24 + (i / 16) * 8 - 64 + 12;
+            int y = _display_size_y / 2 - 24 + (i / 16) * 8 - 64 + 40;
             palcolor(COLOR_BLACK);
             pos(x, y);
             const char s[2] = {(char)(i + 32), 0};
             mes(s);
         }
         const int left = _display_size_x / 2 - 128;
-        const int top = _display_size_y / 2;
+        const int top = _display_size_y / 2 + 24;
         for(int i = 0; i < 64; i += 1){
             const int x = (i / 4) % 16 * 16 + left;
             const int y = (i % 4) * 16 + top;
