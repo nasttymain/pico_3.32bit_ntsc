@@ -13,8 +13,8 @@ namespace videowrite{
     #ifndef uint
     typedef unsigned int uint;
     #endif
-    uint fontsize_x = 8;
-    uint fontsize_y = 8;
+    extern uint fontsize_x;
+    extern uint fontsize_y;
     constexpr const uint8_t hori_tab_size = 2;
     constexpr const uint8_t do_auto_cr = 1;
 
@@ -25,5 +25,6 @@ namespace videowrite{
 }; // videowrite
 
 using videowrite::mes;
+using videowrite::font;
 
 #endif//__NASTTY_CVBS_WRITE_H__

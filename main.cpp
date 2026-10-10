@@ -57,6 +57,7 @@ void draw_by_core1(){
         f += 1;
         
         clrgraph(1);
+        videowrite::font("", 8);
         palcolor(COLOR_BLACK);
         
         mx += sinf((float)(f % 720) / 360 * M_PI);
@@ -76,6 +77,11 @@ void draw_by_core1(){
         snprintf(s, sizeof(s), "ginfo_mesx: %d ginfo_mesy: %d\nf %u", ginfo_mesx, ginfo_mesy, f);
         palcolor(COLOR_BLACK);
         mes(s);
+        
+        videowrite::font("", 16);
+        pos(16, 96);
+        mes("EI DAYO!!!");
+        videowrite::font("", 8);
         
         fps::draw_fps();
         

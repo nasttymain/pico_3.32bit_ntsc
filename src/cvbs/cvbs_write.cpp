@@ -117,6 +117,9 @@ namespace videowrite{
     uint8_t mbbuf[4] = {0, 0, 0, 0};
     uint mbbufi = 0;
     
+    uint fontsize_x = 8;
+    uint fontsize_y = 8;
+    
     inline void put_char_graphic(const uint8_t* cptr, int16_t xpos, int16_t ypos){
         for(int16_t x = 0; x < 8; x++){
             const uint8_t row = cptr[x];
