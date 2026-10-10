@@ -14,7 +14,7 @@ namespace videowrite{
     #ifndef uint
     typedef unsigned int uint;
     #endif
-    constexpr const uint8_t font[768] = {
+    constexpr const uint8_t nttyfont[768] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
     0x00, 0x00, 0x07, 0x5F, 0x07, 0x00, 0x00, 0x00, 
     0x00, 0x02, 0x03, 0x01, 0x04, 0x06, 0x02, 0x00, 
@@ -122,7 +122,13 @@ namespace videowrite{
             const uint8_t row = cptr[x];
             for(int16_t y = 0; y < 8; y++){
                 if(row & static_cast<uint8_t>(0x01 << y)){
-                    pset(xpos + x, ypos + y);
+                    const uint fs = (((fontsize_x > fontsize_y) ? fontsize_x : fontsize_y) + 7) / 8 * 8;
+                    const uint fz = fs >> 3;
+                    if(fs == 8){
+                        pset(xpos + x, ypos + y);
+                    }else{
+                        boxf(xpos + fz * x, ypos + fz * y, xpos + fz * (x + 1) - 1, ypos + fz * (y + 1) - 1);
+                    }
                 }
             }
         }
@@ -148,7 +154,7 @@ namespace videowrite{
             prevc = c;
             c = (unsigned char)(*s);
             if(c >= 32 && c <= 127){
-                put_char_graphic( &(font[(c - 32) << 3]) , px, py);
+                put_char_graphic( &(nttyfont[(c - 32) << 3]) , px, py);
                 px += fontsize_x;
             }else if(c < 32){
                 // ascii 制御文字
@@ -211,6 +217,11 @@ namespace videowrite{
             // ::ginfo_cx は当初ので据え置き
             ::ginfo_cy = py + fontsize_y;
         }
+    }
+    
+    void font(const char* fontname, uint16_t pt, int style){
+        fontsize_x = (uint)pt;
+        fontsize_y = (uint)pt;
     }
 
 }; // videowrite

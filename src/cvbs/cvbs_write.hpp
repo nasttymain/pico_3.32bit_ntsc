@@ -13,13 +13,14 @@ namespace videowrite{
     #ifndef uint
     typedef unsigned int uint;
     #endif
-    constexpr const uint fontsize_x = 8;
-    constexpr const uint fontsize_y = 8;
+    uint fontsize_x = 8;
+    uint fontsize_y = 8;
     constexpr const uint8_t hori_tab_size = 2;
     constexpr const uint8_t do_auto_cr = 1;
 
 
     void mes(const char* s, int mode_switch = 0);
+    void font(const char* fontname = nullptr, uint16_t pt = 8, int style = 0);
 
 }; // videowrite
 
