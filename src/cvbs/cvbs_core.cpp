@@ -294,10 +294,10 @@ void pset(int16_t xpos, int16_t ypos){
         const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);
         if((x & 1) == 0){
             // 0: 左
-            framebuf[flip_offset + c] = framebuf[flip_offset + c] & 0b00111111 + ((current_color & 0b00000011) << 6);
+            framebuf[flip_offset + c] = (framebuf[flip_offset + c] & 0b00111111) + ((current_color & 0b00000011) << 6);
         }else{
             // 1: 右
-            framebuf[flip_offset + c] = framebuf[flip_offset + c] & 0b11111100 + ((current_color & 0b00000011));
+            framebuf[flip_offset + c] = (framebuf[flip_offset + c] & 0b11111100) + ((current_color & 0b00000011));
         }
     }else/* if(color_mode == SCREEN_PALETTE)*/{
         const int32_t c = (((int32_t)y) << 7) + (((int32_t)y) << 6) + (x >> 1);

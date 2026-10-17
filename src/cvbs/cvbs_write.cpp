@@ -223,6 +223,9 @@ namespace videowrite{
     }
     
     void font(const char* fontname, uint16_t pt, int style){
+        (void)fontname;
+        (void)style;
+        
         fontsize_x = (uint)pt;
         fontsize_y = (uint)pt;
     }

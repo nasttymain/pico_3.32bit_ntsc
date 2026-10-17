@@ -135,7 +135,7 @@ void fill(int16_t x, int16_t y){
 void clrgraph(uint8_t clr_mode){
     const uint8_t c = __clrgraph_pattern(clr_mode);
     
-    for(int_fast32_t i = 0; i < FRAMEBUF_MEM_SIZE; i += 1){
+    for(uint_fast32_t i = 0; i < FRAMEBUF_MEM_SIZE; i += 1){
         framebuf[flip_offset + i] = c;
     }
 }
@@ -184,6 +184,8 @@ void pos(int16_t x, int16_t y){
 }
 
 void gcopy(uint8_t window_id, int16_t x1, int16_t y1, int16_t xsize, int16_t ysize){
+    (void)window_id;
+    
     const uint8_t cc = current_color;
     if(x1 >= _display_size_x + drawing_x_offset || y1 >= _display_size_y){
         return;
